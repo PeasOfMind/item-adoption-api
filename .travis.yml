@@ -1,0 +1,11 @@
+language: node_js
+node_js: node
+services:
+- mongodb
+deploy:
+  provider: heroku
+  api_key:
+    secure: PvdUooAahpfT98NOwWQ4ZwbLUtrRtgzRQ512fHgL4bV1zh7n6YCWo6lpjqebdBqSggUhR49Ld+hbsom2toB5PVlG60rVkN1n30AZO5OWHQongZmmgjYSQqQg40tAhxdkOGRfJAeXmPdLwg5TnVSj/4QZDoNQPL/Jze7JS/scjBZLzCF84jwFq+AuAhTzmck4VLlzJpQ8qUcGQHZgufSlPsTaiT/CEAw/qBuQHESh2tSSDo6hcCbN5OI3CR8ykEHO+G+gzRO7yrND2/Hr6W/gV0CIdOSycAPG8aqMom98f2fyfTCKYOBkOLAbZJnj6Dq/9oBNAfArykEhPXS0MH8w5PXq9bELqxgrSllYJYnS0+bMnFAMV5M0gN1iVH2ge1RQlQhvrL7cUtvo/ZWdyvMJ5Ne+XUygmCcq1d4D5n6hdXrmi8a3tzVQfT1qcgpL0kY2fBUj+r4/8AyodYvctWsP9sByirUm70C29v76sZNPCRm7CH58jzOzObhOuG7eXE4zM7WQWPY86q9uYHBC6lh1tBIgSMfK/oZZIAdGNfJtI4S3v9Lekj+fQD4lI6ZwT4luuQryngCC0KryudsBNGoMcn98gQJVfUimJxFFvrk8/Zja4fn/yBD5FsAq5hIzs2oKlO8y+shqJTyPs0YGrI5+n2cT/gpf2js8vk0lJ+yH834=
+  app: sleepy-scrubland-39053
+  on:
+    repo: PeasOfMind/item-adoption-api
