@@ -7,6 +7,10 @@
     "start": "node server.js",
     "test": "mocha --exit"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PeasOfMind/item-adoption-api.git"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
