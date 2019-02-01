@@ -1,6 +1,6 @@
 'use strict';
 
-const {List} = require('./models');
+const {List, Listing, Wishlist} = require('./models');
 const {router} = require('./router');
 
-module.exports = {List, router};
+module.exports = {List, Listing, Wishlist, router};
