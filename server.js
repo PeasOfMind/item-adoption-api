@@ -23,11 +23,11 @@ app.use(
     })
 );
 
-app.use('/api/lists/', listRouter)
+app.use('/api/lists/', listRouter);
 
-// app.get('/api/*', (req, res) => {
-//     res.json({ok: true});
-// });
+app.use('*', (req, res) => {
+    return res.status(404).json({message: 'Not Found'});
+});
 
 let server;
 

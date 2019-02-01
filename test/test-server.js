@@ -1,19 +1,31 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 
-const {app} = require('../server');
+const {app, runServer, closeServer} = require('../server');
+const {TEST_DATABASE_URL} = require('../config');
 
-const should = chai.should();
+const expect = chai.expect;
 chai.use(chaiHttp);
 
-describe('API', function(){
+describe('Item Adoption API', function(){
 
-    it('should return 200 on GET requests', function(){
-        return chai.request(app)
-        .get('/api/fooooo')
-        .then(function(res){
-            res.should.have.status(200);
-            res.should.be.json;
+    before(function(){
+        return runServer(TEST_DATABASE_URL);
+    });
+
+    after(function(){
+        return closeServer();
+    });
+
+    describe('Nonexistent Page', function(){
+        it('should return 404 Not Found', function(){
+            return chai.request(app)
+            .get('/fooooooooo')
+            .then(function(res){
+                expect(res).to.have.status(404);
+                expect(res.body.message).to.equal('Not Found');
+            });
         });
     });
+
 });
