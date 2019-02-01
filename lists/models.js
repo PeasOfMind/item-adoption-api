@@ -13,7 +13,7 @@ const listingSchema = mongoose.Schema({
 
 const wishListSchema = mongoose.Schema({
     name: {type: String, required: true},
-    editing: {type: Boolean, required: true}
+    editing: {type: Boolean, default: false}
 });
 
 const listSchema = mongoose.Schema({
@@ -35,7 +35,7 @@ listingSchema.methods.serialize = function(){
 wishListSchema.methods.serialize = function(){
     return{
         id: this._id,
-        name: this.title,
+        name: this.name,
         editing: this.editing
     }
 }

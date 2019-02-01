@@ -59,8 +59,9 @@ describe('/api/lists', function(){
                 expect(res).to.be.json;
                 expect(res.body).to.be.an('object');
                 expect(res.body).to.include.keys('id', 'title', 'description', 'expiresIn', 'editing');
-            })
-        })
-    })
+            });
+        });
+
+    });
 
 });
