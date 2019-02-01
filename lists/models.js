@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const mongoose = require('mongoose');
 
@@ -6,8 +6,9 @@ const listingSchema = mongoose.Schema({
     title: {type: String, required: true},
     description: String,
     price: {type: Number, required: true},
-    expiresIn: {type: Number, required: true, default: 14},
-    editing: {type: Boolean, required: true}
+    dateCreated: {type: Date, required: true},
+    expirationDate: {type: Date, required: true},
+    editing: {type: Boolean, default: false}
 });
 
 const wishListSchema = mongoose.Schema({
@@ -25,7 +26,8 @@ listingSchema.methods.serialize = function(){
         id: this._id,
         title: this.title,
         description: this.description,
-        expiresIn: this.expiresIn,
+        //calculate the expiration date based on difference between current date and expiration date
+        expiresIn: Math.round(Math.abs(new Date() - this.expirationDate)/60*60*24*1000),
         editing: this.editing
     }
 }
@@ -38,7 +40,7 @@ wishListSchema.methods.serialize = function(){
     }
 }
 
-listingSchema.methods.serialize = function(){
+listSchema.methods.serialize = function(){
     return {
         id: this._id,
         itemListings: this.itemListings.map(listing => listing.serialize()),
@@ -47,5 +49,7 @@ listingSchema.methods.serialize = function(){
 }
 
 const List = mongoose.model('List', listSchema);
+const Listing = mongoose.model('Listing', listingSchema);
+const Wishlist = mongoose.model('Wishlist', wishListSchema);
 
-module.exports = {List}
+module.exports = {List, Listing, Wishlist}

@@ -2,7 +2,7 @@
   "name": "item-adoption-api",
   "version": "1.0.0",
   "description": "API for Item Adoption app",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "mocha --exit"
@@ -16,8 +16,10 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
+    "dotenv": "^6.2.0",
     "express": "^4.16.4",
-    "mongoose": "^5.4.8"
+    "mongoose": "^5.4.8",
+    "morgan": "^1.9.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
