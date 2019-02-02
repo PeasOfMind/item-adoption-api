@@ -5,6 +5,17 @@ const router = express.Router();
 
 const {List, Listing, Wishlist} = require('./models');
 
+router.get('/listings', (req, res) => {
+    Listing.find()
+    .then(listings => {
+        res.json({listings: listings.map(listing => listing.serialize())});
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Could not retrieve active listings'});
+    });
+})
+
 router.post('/listings', (req,res) => {
     const requiredFields = ['title', 'price'];
     requiredFields.forEach(field => {

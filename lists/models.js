@@ -27,7 +27,7 @@ listingSchema.methods.serialize = function(){
         title: this.title,
         description: this.description,
         //calculate the expiration date based on difference between current date and expiration date
-        expiresIn: Math.round(Math.abs(new Date() - this.expirationDate)/60*60*24*1000),
+        expiresIn: Math.round(Math.abs(new Date() - this.expirationDate.getTime())/(60*60*24*1000)),
         editing: this.editing
     }
 }
