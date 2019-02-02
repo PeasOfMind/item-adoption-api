@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {List, Listing, Wishlist} = require('./models');
+const {List, Listing, WishItem} = require('./models');
 
 router.get('/listings', (req, res) => {
     Listing.find()
@@ -55,7 +55,7 @@ router.post('/wishlist', (req, res) => {
         name: req.body.name
     }
 
-    Wishlist.create(newWishItem)
+    WishItem.create(newWishItem)
     .then(wishItem => res.status(201).json(wishItem.serialize()))
     .catch(err => {
         console.error(err);

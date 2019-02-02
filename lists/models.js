@@ -11,18 +11,18 @@ const listingSchema = mongoose.Schema({
     editing: {type: Boolean, default: false}
 });
 
-const wishListSchema = mongoose.Schema({
+const wishItemSchema = mongoose.Schema({
     name: {type: String, required: true},
     editing: {type: Boolean, default: false}
 });
 
 const listSchema = mongoose.Schema({
     itemListings: [listingSchema],
-    wishListArray: [wishListSchema]
+    wishList: [wishItemSchema]
 });
 
 listingSchema.methods.serialize = function(){
-    return{
+    return {
         id: this._id,
         title: this.title,
         description: this.description,
@@ -32,8 +32,8 @@ listingSchema.methods.serialize = function(){
     }
 }
 
-wishListSchema.methods.serialize = function(){
-    return{
+wishItemSchema.methods.serialize = function(){
+    return {
         id: this._id,
         name: this.name,
         editing: this.editing
@@ -44,12 +44,12 @@ listSchema.methods.serialize = function(){
     return {
         id: this._id,
         itemListings: this.itemListings.map(listing => listing.serialize()),
-        wishListArray: this.wishListArray.map(wishList => wishList.serialize())
+        wishList: this.wishList.map(wishList => wishList.serialize())
     }
 }
 
 const List = mongoose.model('List', listSchema);
 const Listing = mongoose.model('Listing', listingSchema);
-const Wishlist = mongoose.model('Wishlist', wishListSchema);
+const WishItem = mongoose.model('WishItem', wishItemSchema);
 
-module.exports = {List, Listing, Wishlist}
+module.exports = {List, Listing, WishItem}
