@@ -12,6 +12,7 @@ const cors = require('cors');
 mongoose.Promise = global.Promise;
 
 const {router: listRouter} = require('./lists');
+const {router: userRouter} = require('./users');
 const {CLIENT_ORIGIN, PORT, DATABASE_URL} = require('./config');
 
 app.use(morgan('common'));
@@ -24,6 +25,8 @@ app.use(
 );
 
 app.use('/api/lists/', listRouter);
+
+app.use('/api/users/', userRouter);
 
 app.use('*', (req, res) => {
     return res.status(404).json({message: 'Not Found'});
