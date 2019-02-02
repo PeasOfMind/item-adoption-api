@@ -1,8 +1,21 @@
+'use strict';
+
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
 
+const mongoose = require('mongoose');
+const morgan = require('morgan');
 const cors = require('cors');
+
+mongoose.Promise = global.Promise;
+
+const {router: listRouter} = require('./lists');
 const {CLIENT_ORIGIN, PORT, DATABASE_URL} = require('./config');
+
+app.use(morgan('common'));
+app.use(express.json());
 
 app.use(
     cors({
@@ -10,8 +23,10 @@ app.use(
     })
 );
 
-app.get('/api/*', (req, res) => {
-    res.json({ok: true});
+app.use('/api/lists/', listRouter);
+
+app.use('*', (req, res) => {
+    return res.status(404).json({message: 'Not Found'});
 });
 
 let server;
@@ -23,6 +38,7 @@ function runServer(databaseUrl, port = PORT){
                 return reject(err);
             }
             server = app.listen(port, () => {
+                console.log(databaseUrl);
                 console.log(`Listening on port ${port}`);
                 resolve();
             })
