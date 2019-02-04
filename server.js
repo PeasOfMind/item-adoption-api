@@ -8,10 +8,13 @@ const app = express();
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
+const passport = require('passport');
 
 mongoose.Promise = global.Promise;
 
 const {router: listRouter} = require('./lists');
+const {router: userRouter} = require('./users');
+const {router: authRouter, localStrategy, jwtStrategy} = require('./auth');
 const {CLIENT_ORIGIN, PORT, DATABASE_URL} = require('./config');
 
 app.use(morgan('common'));
@@ -23,7 +26,12 @@ app.use(
     })
 );
 
+passport.use(localStrategy);
+passport.use(jwtStrategy);
+
 app.use('/api/lists/', listRouter);
+app.use('/api/users/', userRouter);
+app.use('/api/auth/', authRouter);
 
 app.use('*', (req, res) => {
     return res.status(404).json({message: 'Not Found'});

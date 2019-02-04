@@ -18,13 +18,12 @@ router.get('/listings', (req, res) => {
 
 router.post('/listings', (req,res) => {
     const requiredFields = ['title', 'price'];
-    requiredFields.forEach(field => {
-        if (!(field in req.body)){
-            const message = `Missing '${field}' in request body`;
-            console.error(message);
-            return res.status(400).send(message);
-        }
-    });
+    const missingField = requiredFields.find(field => !(field in req.body));
+    if (missingField){
+        const message = `Missing '${missingField}' in request body`;
+        console.error(message);
+        return res.status(400).send(message);
+    }
 
     const newListing = {
         title: req.body.title,
