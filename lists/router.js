@@ -26,16 +26,16 @@ router.post('/listings', (req,res) => {
     }
 
     const newListing = {
+        user: req.user.username,
         title: req.body.title,
         price: req.body.price,
-        dateCreated: new Date()
     };
 
     newListing.description = req.body.description || 'No Description Available';
     //add 14 days (converted into milliseconds) to dateCreated to make expiration date
     newListing.expirationDate = new Date(newListing.dateCreated.getTime() + 14*24*60*60*1000);
 
-    Listing.create(newListing)
+    Listing.createListing(newListing)
     .then(listing => res.status(201).json(listing.serialize()))
     .catch(err => {
         console.error(err);
@@ -51,10 +51,11 @@ router.post('/wishlist', (req, res) => {
     }
 
     const newWishItem = {
-        name: req.body.name
+        title: req.body.title,
+        user: req.user.username
     }
 
-    WishItem.create(newWishItem)
+    Listing.createWishItem(newWishItem)
     .then(wishItem => res.status(201).json(wishItem.serialize()))
     .catch(err => {
         console.error(err);
