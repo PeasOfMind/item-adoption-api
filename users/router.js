@@ -6,7 +6,6 @@ const {createAuthToken} = require('../auth');
 const router = express.Router();
 
 router.post('/', (req, res) => {
-    console.log('processing request');
     const requiredFields = ['username', 'password'];
     const missingField = requiredFields.find(field => !(field in req.body));
 
@@ -37,7 +36,6 @@ router.post('/', (req, res) => {
 
     return User.find({username}, null)
     .then(entry => {
-        console.log('the entry is:', entry);
         if(entry.length > 0){
             return Promise.reject({
                 code: 422,
@@ -50,9 +48,7 @@ router.post('/', (req, res) => {
     })
     .then(hash => User.create({username, password: hash}))
     .then(user => {
-        console.log('generating authToken with', user);
         const serializedUser = user.serialize();
-        console.log('the user is', serializedUser);
         serializedUser.authToken = createAuthToken(serializedUser);
         return res.status(201).json(serializedUser);
     })

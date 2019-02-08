@@ -2,11 +2,15 @@
 
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
 
-const {List, Listing, WishItem} = require('./models');
+const {Listing} = require('./models');
+const jwtAuth = passport.authenticate('jwt', {session: false});
+
+router.use(jwtAuth);
 
 router.get('/listings', (req, res) => {
-    Listing.find()
+    Listing.find({user: req.user.username, isWishlist: false})
     .then(listings => {
         res.json({listings: listings.map(listing => listing.serialize())});
     })
@@ -17,7 +21,7 @@ router.get('/listings', (req, res) => {
 })
 
 router.post('/listings', (req,res) => {
-    const requiredFields = ['title', 'price'];
+    const requiredFields = ['user','title', 'price'];
     const missingField = requiredFields.find(field => !(field in req.body));
     if (missingField){
         const message = `Missing '${missingField}' in request body`;
@@ -32,8 +36,6 @@ router.post('/listings', (req,res) => {
     };
 
     newListing.description = req.body.description || 'No Description Available';
-    //add 14 days (converted into milliseconds) to dateCreated to make expiration date
-    newListing.expirationDate = new Date(newListing.dateCreated.getTime() + 14*24*60*60*1000);
 
     Listing.createListing(newListing)
     .then(listing => res.status(201).json(listing.serialize()))
@@ -44,15 +46,18 @@ router.post('/listings', (req,res) => {
 });
 
 router.post('/wishlist', (req, res) => {
-    if (!('name' in req.body)){
-        const message = `Missing 'name' in request body`;
+    const requiredFields = ['user','title'];
+    const missingField = requiredFields.find(field => !(field in req.body));
+    if (missingField){
+        const message = `Missing '${missingField}' in request body`;
         console.error(message);
         return res.status(400).send(message);
     }
 
     const newWishItem = {
         title: req.body.title,
-        user: req.user.username
+        user: req.user.username,
+        isWishlist: true
     }
 
     Listing.createWishItem(newWishItem)

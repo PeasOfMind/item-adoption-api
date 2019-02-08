@@ -42,14 +42,14 @@ listingSchema.methods.serialize = function(){
 
 listingSchema.statics.createListing = function(listing){
     if (!listing.expirationDate) {
-        listing.expirationDate = new Date() + 14*24*60*60*1000;
+        listing.expirationDate = (new Date()).getTime() + 14*24*60*60*1000;
     }
-    this.create(listing);
+    return this.create(listing);
 }
 
 listingSchema.statics.createWishItem = function(wishItem){
     wishItem.isWishlist = true;
-    this.create(wishItem);
+    return this.create(wishItem);
 }
 
 
