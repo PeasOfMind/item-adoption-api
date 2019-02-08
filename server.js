@@ -15,7 +15,18 @@ mongoose.Promise = global.Promise;
 const {router: listRouter} = require('./lists');
 const {router: userRouter} = require('./users');
 const {router: authRouter, localStrategy, jwtStrategy} = require('./auth');
-const {CLIENT_ORIGIN, PORT, DATABASE_URL} = require('./config');
+const {CLIENT_ORIGIN, PORT, DATABASE_URL, SEND_API_KEY} = require('./config');
+
+// const sgMail = require('@sendgrid/mail');
+// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// const msg = {
+//   to: 'test@example.com',
+//   from: 'test@example.com',
+//   subject: 'Sending with SendGrid is Fun',
+//   text: 'and easy to do anywhere, even with Node.js',
+//   html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+// };
+// sgMail.send(msg);
 
 app.use(morgan('common'));
 app.use(express.json());

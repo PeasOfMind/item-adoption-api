@@ -61,7 +61,7 @@ describe('/api/auth', function(){
         it('Should reject request with incorrect passwords', function(){
             return chai.request(app)
             .post('/api/auth/login')
-            .send({username, password: 'wrongPassword '})
+            .send({username, password: 'wrongPassword'})
             .then(res => {
                 expect(res).to.have.status(401);
             })
