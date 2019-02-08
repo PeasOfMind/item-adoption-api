@@ -18,41 +18,6 @@ router.get('/listings', (req, res) => {
         console.error(err);
         res.status(500).json({error: 'Could not retrieve active listings'});
     });
-})
-
-router.get('/listings/:zipcode', (req, res) => {
-    Listing.find({isWishlist: false})
-    .then(listings => {
-        return listings.filter(listing => listing.user != req.user.username);
-    })
-    .then(filteredListings => {
-        res.json({listings: filteredListings.map(listing => listing.serialize())});
-    });
-})
-
-router.post('/listings', (req,res) => {
-    const requiredFields = ['user','title', 'price'];
-    const missingField = requiredFields.find(field => !(field in req.body));
-    if (missingField){
-        const message = `Missing '${missingField}' in request body`;
-        console.error(message);
-        return res.status(400).send(message);
-    }
-
-    const newListing = {
-        user: req.user.username,
-        title: req.body.title,
-        price: req.body.price,
-    };
-
-    newListing.description = req.body.description || 'No Description Available';
-
-    Listing.createListing(newListing)
-    .then(listing => res.status(201).json(listing.serialize()))
-    .catch(err => {
-        console.error(err);
-        res.status(500).json({error: 'Listing could not be saved.'});
-    });
 });
 
 router.get('/wishlist', (req, res) => {
@@ -64,7 +29,54 @@ router.get('/wishlist', (req, res) => {
         console.error(err);
         res.status(500).json({error: 'Could not retrieve wishlist'});
     });
+});
+
+router.get('/listings/:zipcode', (req, res) => {
+    console.log('the search zipcode is:', req.params.zipcode);
+    Listing.find({isWishlist: false, zipcode: req.params.zipcode})
+    .then(listings => {
+        return listings.filter(listing => listing.user != req.user.username);
+    })
+    .then(filteredListings => {
+        res.json({listings: filteredListings.map(listing => listing.serialize())});
+    });
+});
+
+router.get('/wishlist/:zipcode', (req, res) => {
+    Listing.find({isWishlist: true, zipcode: req.params.zipcode})
+    .then(wishlist => {
+        return wishlist.filter(wishItem => wishItem.user != req.user.username);
+    })
+    .then(filteredWishlist => {
+        res.json({wishlist: filteredWishlist.map(wishItem => wishItem.serialize())});
+    });
 })
+
+router.post('/listings', (req,res) => {
+    const requiredFields = ['user','title', 'price', 'zipcode'];
+    const missingField = requiredFields.find(field => !(field in req.body));
+    if (missingField){
+        const message = `Missing '${missingField}' in request body`;
+        console.error(message);
+        return res.status(400).send(message);
+    }
+
+    const newListing = {
+        user: req.user.username,
+        title: req.body.title,
+        price: req.body.price,
+        zipcode: req.body.zipcode
+    };
+
+    newListing.description = req.body.description || 'No Description Available';
+
+    Listing.createListing(newListing)
+    .then(listing => res.status(201).json(listing.serialize()))
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Listing could not be saved.'});
+    });
+});
 
 router.post('/wishlist', (req, res) => {
     const requiredFields = ['user','title'];
@@ -78,7 +90,8 @@ router.post('/wishlist', (req, res) => {
     const newWishItem = {
         title: req.body.title,
         user: req.user.username,
-        isWishlist: true
+        isWishlist: true,
+        zipcode: req.body.zipcode
     }
 
     Listing.createWishItem(newWishItem)
@@ -96,15 +109,45 @@ router.put('/listings/:id', (req, res) => {
         });
     }
 
-    const updated = {
+    const updated = {editing: false}
 
-    }
+    const updatableFields = ['title', 'description', 'price', 'expirationDate', 'zipcode'];
+    updatableFields.forEach(field => {
+        if(req.body[field]) updated[field] = req.body[field];
+    })
+
+    Listing.findByIdAndUpdate(req.params.id, { $set: updated})
+    .then(() => res.status(204).end())
+    .catch(() => res.status(500).json({message: 'Listing details could not be updated'}));
 });
 
-router.delete('/:id', (req, res) => {
-    Trip.findByIdAndRemove(req.params.id)
+router.put('/wishlist/:id', (req, res) => {
+    if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
+        res.status(400).json({
+            error: 'Request path id and request body id must match'
+        });
+    }
+
+    const updated = {
+        title: req.body.title,
+        editing: false
+    }
+
+    Listing.findByIdAndUpdate(req.params.id, { $set: updated})
     .then(() => res.status(204).end())
-    .catch(() => res.status(500).json({message: 'Could not be deleted'}));
-})
+    .catch(() => res.status(500).json({message: 'Wishlist details could not be updated'}));
+});
+
+router.delete('/listings/:id', (req, res) => {
+    Listing.findByIdAndRemove(req.params.id)
+    .then(() => res.status(204).end())
+    .catch(() => res.status(500).json({message: 'Could not delete listing'}));
+});
+
+router.delete('/wishlist/:id', (req, res) => {
+    Listing.findByIdAndRemove(req.params.id)
+    .then(() => res.status(204).end())
+    .catch(() => res.status(500).json({message: 'Could not delete wishlist'}));
+});
 
 module.exports = {router};
