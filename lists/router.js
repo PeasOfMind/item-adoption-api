@@ -20,6 +20,16 @@ router.get('/listings', (req, res) => {
     });
 })
 
+router.get('/listings/:zipcode', (req, res) => {
+    Listing.find({isWishlist: false})
+    .then(listings => {
+        return listings.filter(listing => listing.user != req.user.username);
+    })
+    .then(filteredListings => {
+        res.json({listings: filteredListings.map(listing => listing.serialize())});
+    });
+})
+
 router.post('/listings', (req,res) => {
     const requiredFields = ['user','title', 'price'];
     const missingField = requiredFields.find(field => !(field in req.body));
@@ -78,5 +88,23 @@ router.post('/wishlist', (req, res) => {
         res.status(500).json({error: 'Wishlist item could not be saved.'});
     });
 });
+
+router.put('/listings/:id', (req, res) => {
+    if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
+        res.status(400).json({
+            error: 'Request path id and request body id must match'
+        });
+    }
+
+    const updated = {
+
+    }
+});
+
+router.delete('/:id', (req, res) => {
+    Trip.findByIdAndRemove(req.params.id)
+    .then(() => res.status(204).end())
+    .catch(() => res.status(500).json({message: 'Could not be deleted'}));
+})
 
 module.exports = {router};

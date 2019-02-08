@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 
+// TODO: add zipcode to schema
 const listingSchema = mongoose.Schema({
     title: {type: String, required: true},
     description: String,
