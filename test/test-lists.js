@@ -84,7 +84,7 @@ describe('/api/lists', function(){
         return closeServer();
     });
 
-    describe('GET endpoint', function(){
+    describe('GET listings endpoint', function(){
         it('should retrieve all active item listings', function(){
             let res;
             return chai.request(app)
@@ -110,9 +110,9 @@ describe('/api/lists', function(){
                 expect(res).to.have.status(200);
                 expect(res).to.be.json;
                 expect(res.body.listings).to.be.an('array');
-                res.body.listings.forEach(trip => {
-                    expect(trip).to.be.an('object');
-                    expect(trip).to.include.keys('id', 'title', 'description', 'expiresIn', 'editing', 'user');
+                res.body.listings.forEach(listing => {
+                    expect(listing).to.be.an('object');
+                    expect(listing).to.include.keys('id', 'title', 'description', 'expiresIn', 'editing', 'user');
                 })
                 resListing = res.body.listings[0];
                 return Listing.findById(resListing.id);
@@ -127,7 +127,49 @@ describe('/api/lists', function(){
         }); 
     });
 
-    describe('POST endpoint', function(){
+    describe('GET wish item endpoint', function(){
+        it('should retrieve all wish list items', function(){
+            let res;
+            return chai.request(app)
+            .get('/api/lists/wishlist')
+            .set('Authorization', `Bearer ${user.authToken}`)
+            .then(function(_res){
+                res = _res;
+                expect(res).to.have.status(200);
+                expect(res.body.wishlist).to.have.lengthOf.at.least(1);
+                return Listing.count({isWishlist: true});
+            })
+            .then(function(count){
+                expect(res.body.wishlist).to.have.lengthOf(count);
+            });
+        });
+
+        it('should return wish items with the right fields', function(){
+            let resWishItem;
+            return chai.request(app)
+            .get('/api/lists/wishlist')
+            .set('Authorization', `Bearer ${user.authToken}`)
+            .then(function(res){
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body.wishlist).to.be.an('array');
+                res.body.wishlist.forEach(wishItem => {
+                    expect(wishItem).to.be.an('object');
+                    expect(wishItem).to.include.keys('id', 'title', 'editing', 'dateCreated', 'user')
+                });
+                resWishItem = res.body.wishlist[0];
+                return Listing.findById(resWishItem.id);
+            })
+            .then(function(wishItem){
+                expect(resWishItem.id).to.equal(wishItem.id);
+                expect(resWishItem.title).to.equal(wishItem.title);
+                expect(resWishItem.user).to.equal(wishItem.user);
+                expect(resWishItem.editing).to.equal(wishItem.editing);
+            });
+        });
+    });
+
+    describe('POST listing endpoint', function(){
         it('should add a new item listing', function(){
             //just generate one listing.
             const newListing = {
@@ -153,7 +195,10 @@ describe('/api/lists', function(){
                 expect(res.body.user).to.equal(user.username);
             });
         });
-
+        
+    });
+    
+    describe('POST wish item endpoint', function(){
         it('should add a new wishlist item', function(){
             //just generate one wishlist item. Should be the first one in the wishlist array.
             const newWishItem = generateWishListData(1)[0];

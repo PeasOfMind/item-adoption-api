@@ -45,6 +45,17 @@ router.post('/listings', (req,res) => {
     });
 });
 
+router.get('/wishlist', (req, res) => {
+    Listing.find({user: req.user.username, isWishlist: true})
+    .then(wishlist => {
+        res.json({wishlist: wishlist.map(wishitem => wishitem.serialize())});
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Could not retrieve wishlist'});
+    });
+})
+
 router.post('/wishlist', (req, res) => {
     const requiredFields = ['user','title'];
     const missingField = requiredFields.find(field => !(field in req.body));
