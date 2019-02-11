@@ -5,7 +5,7 @@ const faker = require('faker');
 
 const {app, runServer, closeServer} = require('../server');
 const {TEST_DATABASE_URL} = require('../config');
-const {Listing} = require('../lists');
+const {List} = require('../lists');
 
 const expect = chai.expect;
 chai.use(chaiHttp);
@@ -20,7 +20,7 @@ const testZip = faker.address.zipCode('#####');
 function seedDatabase(){
     //generate a bunch of listings and wishlists associated with different users
     const seedData = [...generateListingData(5, user.username), ...generateWishListData(5, user.username),...generateListingData(6), ...generateWishListData(6)];
-    return Listing.insertMany(seedData);
+    return List.insertMany(seedData);
 }
 
 function generateListingData(quantity, user){
@@ -102,7 +102,7 @@ describe('/api/lists', function(){
                 res = _res;
                 expect(res).to.have.status(200);
                 expect(res.body.listings).to.have.lengthOf.at.least(1);
-                return Listing.count({user: user.username, isWishlist: false});
+                return List.count({user: user.username, isWishlist: false});
             })
             .then(function(count){
                 expect(res.body.listings).to.have.lengthOf(count);
@@ -123,7 +123,7 @@ describe('/api/lists', function(){
                     expect(listing).to.include.keys('id', 'title', 'price', 'description', 'expiresIn', 'editing', 'user', 'zipcode');
                 })
                 resListing = res.body.listings[0];
-                return Listing.findById(resListing.id);
+                return List.findById(resListing.id);
             })
             .then(function(listing){
                 expect(resListing.id).to.equal(listing.id);
@@ -146,7 +146,7 @@ describe('/api/lists', function(){
                 res = _res;
                 expect(res).to.have.status(200);
                 expect(res.body.wishlist).to.have.lengthOf.at.least(1);
-                return Listing.count({user: user.username, isWishlist: true});
+                return List.count({user: user.username, isWishlist: true});
             })
             .then(function(count){
                 expect(res.body.wishlist).to.have.lengthOf(count);
@@ -167,7 +167,7 @@ describe('/api/lists', function(){
                     expect(wishItem).to.include.keys('id', 'title', 'editing', 'dateCreated', 'user', 'zipcode')
                 });
                 resWishItem = res.body.wishlist[0];
-                return Listing.findById(resWishItem.id);
+                return List.findById(resWishItem.id);
             })
             .then(function(wishItem){
                 expect(resWishItem.id).to.equal(wishItem.id);
@@ -186,10 +186,9 @@ describe('/api/lists', function(){
             .set('Authorization', `Bearer ${user.authToken}`)
             .then(function(_res){
                 res = _res;
-                console.log('the res.body is:',res.body)
                 expect(res).to.have.status(200);
                 expect(res.body.listings).to.have.lengthOf.at.least(1);
-                return Listing.count({isWishlist: false, zipcode: testZip, user: {$ne: user.username}});
+                return List.count({isWishlist: false, zipcode: testZip, user: {$ne: user.username}});
             })
             .then(function(count){
                 expect(res.body.listings).to.have.lengthOf(count);
@@ -210,7 +209,7 @@ describe('/api/lists', function(){
                     expect(listing).to.include.keys('id', 'title', 'price','description', 'expiresIn', 'editing', 'user', 'zipcode');
                 })
                 resListing = res.body.listings[0];
-                return Listing.findById(resListing.id);
+                return List.findById(resListing.id);
             })
             .then(function(listing){
                 expect(resListing.id).to.equal(listing.id);
@@ -233,7 +232,7 @@ describe('/api/lists', function(){
                 res = _res;
                 expect(res).to.have.status(200);
                 expect(res.body.wishlist).to.have.lengthOf.at.least(1);
-                return Listing.count({isWishlist: true, zipcode: testZip, user: {$ne: user.username}});
+                return List.count({isWishlist: true, zipcode: testZip, user: {$ne: user.username}});
             })
             .then(function(count){
                 expect(res.body.wishlist).to.have.lengthOf(count);
@@ -254,7 +253,7 @@ describe('/api/lists', function(){
                     expect(wishItem).to.include.keys('id', 'title', 'editing', 'dateCreated', 'user', 'zipcode')
                 });
                 resWishItem = res.body.wishlist[0];
-                return Listing.findById(resWishItem.id);
+                return List.findById(resWishItem.id);
             })
             .then(function(wishItem){
                 expect(resWishItem.id).to.equal(wishItem.id);
@@ -325,7 +324,7 @@ describe('/api/lists', function(){
                 price: 100,
                 zipcode: 11238
             };
-            return Listing.findOne({isWishlist: false})
+            return List.findOne({isWishlist: false})
             .then(function(listing){
                 updateData.id = listing.id;
                 return chai.request(app)
@@ -335,7 +334,7 @@ describe('/api/lists', function(){
             })
             .then(function(res){
                 expect(res).to.have.status(204);
-                return Listing.findById(updateData.id);
+                return List.findById(updateData.id);
             })
             .then(function(listing){
                 expect(listing.title).to.equal(updateData.title);
@@ -353,7 +352,7 @@ describe('/api/lists', function(){
             const updateData = {
                 title: "Queen mattress"
             };
-            return Listing.findOne({isWishlist: true})
+            return List.findOne({isWishlist: true})
             .then(function(wishItem){
                 updateData.id = wishItem.id;
                 return chai.request(app)
@@ -363,7 +362,7 @@ describe('/api/lists', function(){
             })
             .then(function(res){
                 expect(res).to.have.status(204);
-                return Listing.findById(updateData.id);
+                return List.findById(updateData.id);
             })
             .then(function(wishItem){
                 expect(wishItem.title).to.equal(updateData.title);
@@ -376,7 +375,7 @@ describe('/api/lists', function(){
     describe('DELETE listing endpoint', function(){
         it('should delete a listing by id', function(){
             let listing;
-            return Listing.findOne({isWishlist: false})
+            return List.findOne({isWishlist: false})
             .then(function(_listing){
                 listing = _listing;
                 return chai.request(app)
@@ -385,7 +384,7 @@ describe('/api/lists', function(){
             })
             .then(function(res){
                 expect(res).to.have.status(204);
-                return Listing.findById(listing.id);
+                return List.findById(listing.id);
             })
             .then(function(listingResult){
                 expect(listingResult).to.be.null;
@@ -396,7 +395,7 @@ describe('/api/lists', function(){
     describe('DELETE wish item endpoint', function(){
         it('should delete a wish item by id', function(){
             let wishItem;
-            return Listing.findOne({isWishlist: true})
+            return List.findOne({isWishlist: true})
             .then(function(_wishItem){
                 wishItem = _wishItem;
                 return chai.request(app)
@@ -405,7 +404,7 @@ describe('/api/lists', function(){
             })
             .then(function(res){
                 expect(res).to.have.status(204);
-                return Listing.findById(wishItem.id);
+                return List.findById(wishItem.id);
             })
             .then(function(wishlistResult){
                 expect(wishlistResult).to.be.null;
