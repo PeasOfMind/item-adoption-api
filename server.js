@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 const passport = require('passport');
+const bodyParser = require('body-parser');
 
 mongoose.Promise = global.Promise;
 
@@ -30,6 +31,7 @@ const {CLIENT_ORIGIN, PORT, DATABASE_URL, SEND_API_KEY} = require('./config');
 
 app.use(morgan('common'));
 app.use(express.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(
     cors({
