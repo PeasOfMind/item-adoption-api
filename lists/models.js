@@ -10,7 +10,7 @@ const listSchema = mongoose.Schema({
     expirationDate: {type: Date, default: null},
     isWishlist: {type: Boolean, default: false},
     editing: {type: Boolean, default: false},
-    user: {type: String, required: true},
+    user: {type: mongoose.Schema.Types.ObjectId, ref:'User'},
     zipcode: {type: Number, required: true}
 });
 
@@ -49,6 +49,10 @@ listSchema.statics.createWishItem = function(wishItem){
     wishItem.isWishlist = true;
     return this.create(wishItem);
 }
+
+listSchema.pre('find', function(next){
+    this.populate('user', ['username', 'zipcode'])
+});
 
 const List = mongoose.model('List', listSchema);
 

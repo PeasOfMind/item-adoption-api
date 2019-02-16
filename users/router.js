@@ -60,4 +60,19 @@ router.post('/', (req, res) => {
 
 });
 
+router.put('/:id', (req, res) => {
+    //This endpoint assigns/updates a zipcode for the user only.
+    if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
+        res.status(400).json({
+            error: 'Request path id and request body id must match'
+        });
+    }
+
+    const updated = {zipcode: req.body.zipcode}
+
+    User.findByIdAndUpdate(req.params.id, {$set: updated})
+    .then(() => res.status(204).end())
+    .catch(() => res.status(500).json({message: 'Zipcode data could not be saved to user'}))
+});
+
 module.exports = {router};

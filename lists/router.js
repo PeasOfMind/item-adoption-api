@@ -10,7 +10,7 @@ const jwtAuth = passport.authenticate('jwt', {session: false});
 router.use(jwtAuth);
 
 router.get('/listings', (req, res) => {
-    List.find({user: req.user.username, isWishlist: false})
+    List.find({user: req.user.id, isWishlist: false})
     .then(listings => {
         res.json({listings: listings.map(listing => listing.serialize())});
     })
@@ -62,7 +62,7 @@ router.post('/listings', (req,res) => {
     }
 
     const newListing = {
-        user: req.user.username,
+        user: req.user.id,
         title: req.body.title,
         price: req.body.price,
         zipcode: req.body.zipcode
@@ -89,7 +89,7 @@ router.post('/wishlist', (req, res) => {
 
     const newWishItem = {
         title: req.body.title,
-        user: req.user.username,
+        user: req.user.id,
         isWishlist: true,
         zipcode: req.body.zipcode
     }
