@@ -21,7 +21,7 @@ router.get('/listings', (req, res) => {
 });
 
 router.get('/wishlist', (req, res) => {
-    List.find({user: req.user.username, isWishlist: true})
+    List.find({user: req.user.id, isWishlist: true})
     .then(wishlist => {
         res.json({wishlist: wishlist.map(wishitem => wishitem.serialize())});
     })
@@ -64,12 +64,12 @@ router.post('/listings', (req,res) => {
     const newListing = {
         user: req.user.id,
         title: req.body.title,
-        price: req.body.price,
-        zipcode: req.body.zipcode
+        price: req.body.price
     };
 
     newListing.description = req.body.description || 'No Description Available';
-
+    //set a zipcode if the user wants it. otherwise it'll default to the zipcode associated with the user
+    if (req.body.zipcode) newListing.zipcode = req.body.zipcode;
     List.createListing(newListing)
     .then(listing => res.status(201).json(listing.serialize()))
     .catch(err => {
@@ -91,11 +91,14 @@ router.post('/wishlist', (req, res) => {
         title: req.body.title,
         user: req.user.id,
         isWishlist: true,
-        zipcode: req.body.zipcode
     }
 
     List.createWishItem(newWishItem)
-    .then(wishItem => res.status(201).json(wishItem.serialize()))
+    .then(wishItem => {
+        console.log('wishItem is', wishItem);
+        res.status(201).json(wishItem.serialize())
+    }
+        )
     .catch(err => {
         console.error(err);
         res.status(500).json({error: 'Wishlist item could not be saved.'});

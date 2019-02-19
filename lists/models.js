@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const {User} = require('../users/models');
 
 // TODO: add zipcode to schema
 const listSchema = mongoose.Schema({
@@ -11,7 +12,7 @@ const listSchema = mongoose.Schema({
     isWishlist: {type: Boolean, default: false},
     editing: {type: Boolean, default: false},
     user: {type: mongoose.Schema.Types.ObjectId, ref:'User'},
-    zipcode: {type: Number, required: true}
+    zipcode: {type: Number}
 });
 
 listSchema.methods.serialize = function(){
@@ -42,16 +43,33 @@ listSchema.statics.createListing = function(listing){
         //if no price is provided, set to free.
         listing.price = 0;
     }
-    return this.create(listing);
+
+    //if zipcode is not provided, set zipcode.
+    if (!listing.zipcode) {
+        User.findById(listing.user)
+        .then(user => {
+            console.log('found the user:', user);
+            listing.zipcode = user.zipcode;
+            return this.create(listing);
+        })
+        .catch(err => {
+            console.error(err);
+        })
+    } else {
+        return this.create(listing);
+    }
 }
 
 listSchema.statics.createWishItem = function(wishItem){
+    //zipcodes won't be associated with each wishItem,
+    //only the full wishlist
     wishItem.isWishlist = true;
     return this.create(wishItem);
 }
 
 listSchema.pre('find', function(next){
-    this.populate('user', ['username', 'zipcode'])
+    this.populate('user', ['username', 'zipcode']);
+    next();
 });
 
 const List = mongoose.model('List', listSchema);
