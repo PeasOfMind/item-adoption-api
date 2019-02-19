@@ -53,7 +53,7 @@ router.get('/wishlist/:zipcode', (req, res) => {
 })
 
 router.post('/listings', (req,res) => {
-    const requiredFields = ['title', 'price', 'zipcode'];
+    const requiredFields = ['title', 'price'];
     const missingField = requiredFields.find(field => !(field in req.body));
     if (missingField){
         const message = `Missing '${missingField}' in request body`;

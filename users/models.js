@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema({
         unique: true
     },
     password: {type: String, require: true},
-    zipcode: {type: Number}
+    zipcode: {type: String}
 });
 
 userSchema.methods.serialize = function(){

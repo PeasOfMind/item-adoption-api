@@ -12,7 +12,7 @@ const listSchema = mongoose.Schema({
     isWishlist: {type: Boolean, default: false},
     editing: {type: Boolean, default: false},
     user: {type: mongoose.Schema.Types.ObjectId, ref:'User'},
-    zipcode: {type: Number}
+    zipcode: {type: String}
 });
 
 listSchema.methods.serialize = function(){
@@ -46,7 +46,7 @@ listSchema.statics.createListing = function(listing){
 
     //if zipcode is not provided, set zipcode.
     if (!listing.zipcode) {
-        User.findById(listing.user)
+        return User.findById(listing.user)
         .then(user => {
             console.log('found the user:', user);
             listing.zipcode = user.zipcode;
@@ -68,7 +68,7 @@ listSchema.statics.createWishItem = function(wishItem){
 }
 
 listSchema.pre('find', function(next){
-    this.populate('user', ['username', 'zipcode']);
+    this.populate('user', ['id', 'username', 'zipcode']);
     next();
 });
 
