@@ -48,7 +48,6 @@ listSchema.statics.createListing = function(listing){
     if (!listing.zipcode) {
         return User.findById(listing.user)
         .then(user => {
-            console.log('found the user:', user);
             listing.zipcode = user.zipcode;
             return this.create(listing);
         })

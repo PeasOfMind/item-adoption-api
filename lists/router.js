@@ -32,7 +32,6 @@ router.get('/wishlist', (req, res) => {
 });
 
 router.get('/listings/:zipcode', (req, res) => {
-    console.log('the search zipcode is:', req.params.zipcode);
     List.find({isWishlist: false, zipcode: req.params.zipcode})
     .then(listings => {
         return listings.filter(listing => listing.user != req.user.username);
@@ -95,7 +94,6 @@ router.post('/wishlist', (req, res) => {
 
     List.createWishItem(newWishItem)
     .then(wishItem => {
-        console.log('wishItem is', wishItem);
         res.status(201).json(wishItem.serialize())
     }
         )
