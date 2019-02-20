@@ -10,7 +10,7 @@ const jwtAuth = passport.authenticate('jwt', {session: false});
 router.use(jwtAuth);
 
 router.get('/listings', (req, res) => {
-    List.find({user: req.user.username, isWishlist: false})
+    List.find({user: req.user.id, isWishlist: false})
     .then(listings => {
         res.json({listings: listings.map(listing => listing.serialize())});
     })
@@ -21,7 +21,7 @@ router.get('/listings', (req, res) => {
 });
 
 router.get('/wishlist', (req, res) => {
-    List.find({user: req.user.username, isWishlist: true})
+    List.find({user: req.user.id, isWishlist: true})
     .then(wishlist => {
         res.json({wishlist: wishlist.map(wishitem => wishitem.serialize())});
     })
@@ -32,7 +32,6 @@ router.get('/wishlist', (req, res) => {
 });
 
 router.get('/listings/:zipcode', (req, res) => {
-    console.log('the search zipcode is:', req.params.zipcode);
     List.find({isWishlist: false, zipcode: req.params.zipcode})
     .then(listings => {
         return listings.filter(listing => listing.user != req.user.username);
@@ -53,7 +52,7 @@ router.get('/wishlist/:zipcode', (req, res) => {
 })
 
 router.post('/listings', (req,res) => {
-    const requiredFields = ['title', 'price', 'zipcode'];
+    const requiredFields = ['title', 'price'];
     const missingField = requiredFields.find(field => !(field in req.body));
     if (missingField){
         const message = `Missing '${missingField}' in request body`;
@@ -62,14 +61,14 @@ router.post('/listings', (req,res) => {
     }
 
     const newListing = {
-        user: req.user.username,
+        user: req.user.id,
         title: req.body.title,
-        price: req.body.price,
-        zipcode: req.body.zipcode
+        price: req.body.price
     };
 
     newListing.description = req.body.description || 'No Description Available';
-
+    //set a zipcode if the user wants it. otherwise it'll default to the zipcode associated with the user
+    if (req.body.zipcode) newListing.zipcode = req.body.zipcode;
     List.createListing(newListing)
     .then(listing => res.status(201).json(listing.serialize()))
     .catch(err => {
@@ -89,13 +88,15 @@ router.post('/wishlist', (req, res) => {
 
     const newWishItem = {
         title: req.body.title,
-        user: req.user.username,
+        user: req.user.id,
         isWishlist: true,
-        zipcode: req.body.zipcode
     }
 
     List.createWishItem(newWishItem)
-    .then(wishItem => res.status(201).json(wishItem.serialize()))
+    .then(wishItem => {
+        res.status(201).json(wishItem.serialize())
+    }
+        )
     .catch(err => {
         console.error(err);
         res.status(500).json({error: 'Wishlist item could not be saved.'});

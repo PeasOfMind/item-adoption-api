@@ -12,10 +12,14 @@ const userSchema = mongoose.Schema({
         unique: true
     },
     password: {type: String, require: true},
+    zipcode: {type: String}
 });
 
 userSchema.methods.serialize = function(){
-    return {username: this.username}
+    return {
+        username: this.username,
+        id: this._id
+    }
 };
 
 userSchema.methods.validatePassword = function(password){
