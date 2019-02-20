@@ -6,7 +6,7 @@ Client code: https://github.com/PeasOfMind/item-adoption-client
 
 Live app (and base URL): https://warm-thicket-79199.herokuapp.com/
 
-### HTTP Verbs:
+## HTTP Verbs:
 
 Client accesses the database of active listings and wishlists at {baseURL}/api/lists
 
@@ -23,4 +23,11 @@ Client accesses the database of active listings and wishlists at {baseURL}/api/l
 | /listings/:id   | N/A | N/A | Edit listing | Delete listing |
 | /wishlist/:id   | N/A | N/A | Edit wish item | Delete wish item |
 
-Authentication is required for all requests.
+An athentication token is required for all requests & is provided by either:
+
+Logging in (POST) at {baseURL}/api/auth/login 
+
+Registering (POST) at {baseURL}/api/users
+
+---
+Built with: Javascript (Node.js), Express, Mongoose, MongoDB, Passport
