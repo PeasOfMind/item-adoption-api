@@ -3,7 +3,6 @@
 const mongoose = require('mongoose');
 const {User} = require('../users/models');
 
-// TODO: add zipcode to schema
 const listSchema = mongoose.Schema({
     title: {type: String, required: true},
     description: String,
@@ -44,7 +43,7 @@ listSchema.statics.createListing = function(listing){
         listing.price = 0;
     }
 
-    //if zipcode is not provided, set zipcode.
+    //if zipcode is not provided, set zipcode to one associated with the user.
     if (!listing.zipcode) {
         return User.findById(listing.user)
         .then(user => {
