@@ -22,10 +22,10 @@ describe('/api/user', function(){
     });
 
     afterEach(function(){
-        return User.remove({});
+        return User.deleteMany({});
     });
 
-    describe('/api/users', function(){
+    describe('Register user endpoint', function(){
         describe('POST', function(){
             it('Should reject users with missing username', function(){
                 return chai.request(app)
@@ -111,32 +111,70 @@ describe('/api/user', function(){
         });
     });
 
-    describe('PUT', function(){
-        it.only('Should update the zipcode for the given user ID', function(){
-            const testZip = '00001'
-            //register a user first
-            return chai.request(app)
-            .post('/api/users')
-            .send({username, password})
-            .then(res => {
-                return res.body;
-            })
-            .then(user => {
-                //then add a zipcode to user
+    //handle user location (zipcode) endpoints
+    describe('/:id', function(){
+        describe('GET', function(){
+            it('Should provide the zipcode for the given user ID', function(){
+                const testZip = '10101';
+                let user;
+                //register a user first
                 return chai.request(app)
-                .put(`/api/users/${user.id}`)
-                .send({zipcode: testZip, id: user.id})
+                .post('/api/users')
+                .send({username, password})
+                .then(res => {
+                    return res.body;
+                })
+                .then(_user => {
+                    // store user info to use
+                    user = _user;
+                    //add the zipcode to the user document directly
+                    return User.findByIdAndUpdate(user.id, {$set: {zipcode: testZip} })
+                })
+                .then(() => {
+                    return chai.request(app)
+                    .get(`/api/users/${user.id}`)
+                    .set('Authorization', `Bearer ${user.authToken}`)
+                })
+                .then(res => {
+                    expect(res).to.have.status(200);
+                    expect(res).to.be.json;
+                    expect(res.body.zipcode).to.equal(testZip);
+                })
+
             })
-            .then(res => {
-                expect(res).to.have.status(204);
-                return User.findOne({username});
-            })
-            .then(user => {
-                expect(user.zipcode).to.be.a('string');
-                expect(user.zipcode).to.equal(testZip);
+        })
+
+
+        describe('PUT', function(){
+            it('Should update the zipcode for the given user ID', function(){
+                const testZip = '00001';
+                //register a user first
+                return chai.request(app)
+                .post('/api/users')
+                .send({username, password})
+                .then(res => {
+                    return res.body;
+                })
+                .then(user => {
+                    //then add a zipcode to user
+                    return chai.request(app)
+                    .put(`/api/users/${user.id}`)
+                    .set('Authorization', `Bearer ${user.authToken}`)
+                    .send({zipcode: testZip, id: user.id})
+                })
+                .then(res => {
+                    expect(res).to.have.status(204);
+                    return User.findOne({username});
+                })
+                .then(user => {
+                    expect(user.zipcode).to.be.a('string');
+                    expect(user.zipcode).to.equal(testZip);
+                });
             });
         });
-    });
+
+    })
+
 
 
 

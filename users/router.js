@@ -5,6 +5,9 @@ const {User} = require('./models');
 const {createAuthToken} = require('../auth');
 const router = express.Router();
 
+const passport = require('passport');
+const jwtAuth = passport.authenticate('jwt', {session: false});
+
 router.post('/', (req, res) => {
     const requiredFields = ['username', 'password'];
     const missingField = requiredFields.find(field => !(field in req.body));
@@ -60,7 +63,16 @@ router.post('/', (req, res) => {
 
 });
 
-router.put('/:id', (req, res) => {
+router.get('/:id', jwtAuth, (req, res) => {
+    //This endpoint gets the zipcode for the user only.
+    User.findById(req.params.id)
+    .then(user => {
+        return res.json({zipcode: user.zipcode});
+    });
+
+});
+
+router.put('/:id', jwtAuth, (req, res) => {
     //This endpoint assigns/updates a zipcode for the user only.
     if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
         res.status(400).json({
