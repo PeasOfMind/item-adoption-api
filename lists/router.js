@@ -32,13 +32,10 @@ router.get('/wishlist', (req, res) => {
 });
 
 router.get('/listings/:zipcode', (req, res) => {
-    List.find({isWishlist: false, zipcode: req.params.zipcode})
+    List.find({isWishlist: false, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(listings => {
         console.log(listings);
-        return listings.filter(listing => listing.user != req.user.id);
-    })
-    .then(filteredListings => {
-        res.json({listings: filteredListings.map(listing => listing.serialize())});
+        res.json({listings: listings.map(listing => listing.serialize())});
     });
 });
 
