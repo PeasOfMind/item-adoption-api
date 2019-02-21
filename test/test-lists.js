@@ -12,14 +12,15 @@ chai.use(chaiHttp);
 
 let user = {
     username: null,
-    authToken: null
+    authToken: null,
+    id: null
 }
 
 const testZip = faker.address.zipCode('#####');
 
 function seedDatabase(){
     //generate a bunch of listings and wishlists associated with different users
-    const seedData = [...generateListingData(5, user.username), ...generateWishListData(5, user.username),...generateListingData(6), ...generateWishListData(6)];
+    const seedData = [...generateListingData(5, user), ...generateWishListData(5, user),...generateListingData(6), ...generateWishListData(6)];
     return List.insertMany(seedData);
 }
 
@@ -31,7 +32,7 @@ function generateListingData(quantity, user){
         const dateCreated = faker.date.recent(12);
         expirationDate = new Date(dateCreated.getTime() + 14*24*60*60*1000);
         listings.push({
-            user,
+            user: user.id,
             title: faker.random.words(),
             description: faker.lorem.sentence(),
             price: faker.random.number(),
@@ -48,10 +49,9 @@ function generateWishListData(quantity, user){
         //if a user is not supplied, generate one using faker
         if (!user) user = faker.internet.userName();
         wishlist.push({
-            user,
+            user: user.id,
             title: faker.random.words(),
-            isWishlist: true,
-            zipcode: testZip
+            isWishlist: true
         });
     }
     return wishlist
@@ -78,6 +78,7 @@ describe('/api/lists', function(){
         .then(response => {
             user.username = response.body.username;
             user.authToken = response.body.authToken;
+            user.id = response.body.id;
         })
         .then(() => {
             return seedDatabase();
@@ -102,9 +103,10 @@ describe('/api/lists', function(){
                 res = _res;
                 expect(res).to.have.status(200);
                 expect(res.body.listings).to.have.lengthOf.at.least(1);
-                return List.count({user: user.username, isWishlist: false});
+                return List.countDocuments({user: user.id, isWishlist: false});
             })
             .then(function(count){
+                console.log(count);
                 expect(res.body.listings).to.have.lengthOf(count);
             });
         });
@@ -146,7 +148,7 @@ describe('/api/lists', function(){
                 res = _res;
                 expect(res).to.have.status(200);
                 expect(res.body.wishlist).to.have.lengthOf.at.least(1);
-                return List.count({user: user.username, isWishlist: true});
+                return List.count({user: user.id, isWishlist: true});
             })
             .then(function(count){
                 expect(res.body.wishlist).to.have.lengthOf(count);
@@ -188,7 +190,7 @@ describe('/api/lists', function(){
                 res = _res;
                 expect(res).to.have.status(200);
                 expect(res.body.listings).to.have.lengthOf.at.least(1);
-                return List.count({isWishlist: false, zipcode: testZip, user: {$ne: user.username}});
+                return List.count({isWishlist: false, zipcode: testZip, user: {$ne: user.id}});
             })
             .then(function(count){
                 expect(res.body.listings).to.have.lengthOf(count);

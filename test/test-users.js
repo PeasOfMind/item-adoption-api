@@ -84,9 +84,60 @@ describe('/api/user', function(){
                 });
             });
 
+            it('Should create a new user', function(){
+                return chai.request(app)
+                .post('/api/users')
+                .send({username, password})
+                .then(res => {
+                    expect(res).to.have.status(201);
+                    expect(res.body).to.be.an('object');
+                    expect(res.body).to.have.keys('username', 'id', 'authToken');
+                    expect(res.body.username).to.equal(username);
+                    return User.findOne({username});
+                })
+                .then(user => {
+                    expect(user).to.not.be.null;
+                    return user.validatePassword(password);
+                })
+                .then(passwordIsCorrect => {
+                    expect(passwordIsCorrect).to.be.true;
+                })
+                .catch(err => {
+                    throw err;
+                });
+            });
+
 
         });
     });
+
+    describe('PUT', function(){
+        it.only('Should update the zipcode for the given user ID', function(){
+            const testZip = '00001'
+            //register a user first
+            return chai.request(app)
+            .post('/api/users')
+            .send({username, password})
+            .then(res => {
+                return res.body;
+            })
+            .then(user => {
+                //then add a zipcode to user
+                return chai.request(app)
+                .put(`/api/users/${user.id}`)
+                .send({zipcode: testZip, id: user.id})
+            })
+            .then(res => {
+                expect(res).to.have.status(204);
+                return User.findOne({username});
+            })
+            .then(user => {
+                expect(user.zipcode).to.be.a('string');
+                expect(user.zipcode).to.equal(testZip);
+            });
+        });
+    });
+
 
 
 });
