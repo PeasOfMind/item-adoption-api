@@ -9,7 +9,6 @@ const listSchema = mongoose.Schema({
     price: {type: Number},
     expirationDate: {type: Date, default: null},
     isWishlist: {type: Boolean, default: false},
-    editing: {type: Boolean, default: false},
     user: {type: mongoose.Schema.Types.ObjectId, ref:'User'},
     zipcode: {type: String}
 });
@@ -19,7 +18,6 @@ listSchema.methods.serialize = function(){
         id: this._id,
         title: this.title,
         dateCreated: this._id.getTimestamp(),
-        editing: this.editing,
         user: this.user,
         zipcode: this.zipcode
     };

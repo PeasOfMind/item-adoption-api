@@ -108,7 +108,7 @@ router.put('/listings/:id', (req, res) => {
         });
     }
 
-    const updated = {editing: false}
+    const updated = {};
 
     const updatableFields = ['title', 'description', 'price', 'expirationDate', 'zipcode'];
     updatableFields.forEach(field => {
@@ -126,10 +126,10 @@ router.put('/wishlist/:id', (req, res) => {
             error: 'Request path id and request body id must match'
         });
     }
+    if(!req.body.title) res.status(400).json({error: 'wish item title must be provided'});
 
     const updated = {
         title: req.body.title,
-        editing: false
     }
 
     List.findByIdAndUpdate(req.params.id, { $set: updated})

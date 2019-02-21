@@ -161,7 +161,7 @@ describe('/api/lists', function(){
                 expect(res.body.listings).to.be.an('array');
                 res.body.listings.forEach(listing => {
                     expect(listing).to.be.an('object');
-                    expect(listing).to.include.keys('id', 'title', 'price', 'description', 'expiresIn', 'editing', 'user', 'zipcode');
+                    expect(listing).to.include.keys('id', 'title', 'price', 'description', 'expiresIn', 'user', 'zipcode');
                 })
                 resListing = res.body.listings[0];
                 return List.findById(resListing.id);
@@ -169,7 +169,6 @@ describe('/api/lists', function(){
             .then(function(listing){
                 expect(resListing.id).to.equal(listing.id);
                 expect(resListing.title).to.equal(listing.title);
-                expect(resListing.editing).to.equal(listing.editing);
                 expect(resListing.description).to.equal(listing.description);
                 expect(resListing.price).to.equal(listing.price);
                 expect(resListing.user._id).to.equal(listing.user.toString());
@@ -205,7 +204,7 @@ describe('/api/lists', function(){
                 expect(res.body.wishlist).to.be.an('array');
                 res.body.wishlist.forEach(wishItem => {
                     expect(wishItem).to.be.an('object');
-                    expect(wishItem).to.include.keys('id', 'title', 'editing', 'dateCreated', 'user')
+                    expect(wishItem).to.include.keys('id', 'title', 'dateCreated', 'user')
                 });
                 resWishItem = res.body.wishlist[0];
                 return List.findById(resWishItem.id);
@@ -214,7 +213,6 @@ describe('/api/lists', function(){
                 expect(resWishItem.id).to.equal(wishItem.id);
                 expect(resWishItem.title).to.equal(wishItem.title);
                 expect(resWishItem.user._id).to.equal(wishItem.user.toString());
-                expect(resWishItem.editing).to.equal(wishItem.editing);
             });
         });
     });
@@ -270,7 +268,7 @@ describe('/api/lists', function(){
     //                 expect(res.body.listings).to.be.an('array');
     //                 res.body.listings.forEach(listing => {
     //                     expect(listing).to.be.an('object');
-    //                     expect(listing).to.include.keys('id', 'title', 'price','description', 'expiresIn', 'editing', 'user', 'zipcode');
+    //                     expect(listing).to.include.keys('id', 'title', 'price','description', 'expiresIn', 'user', 'zipcode');
     //                 })
     //                 resListing = res.body.listings[0];
     //                 return List.findById(resListing.id);
@@ -279,7 +277,6 @@ describe('/api/lists', function(){
     //                 expect(resListing.id).to.equal(listing.id);
     //                 expect(resListing.title).to.equal(listing.title);
     //                 expect(resListing.price).to.equal(listing.price);
-    //                 expect(resListing.editing).to.equal(listing.editing);
     //                 expect(resListing.description).to.equal(listing.description);
     //                 expect(resListing.user).to.equal(listing.user);
     //             });
@@ -314,7 +311,7 @@ describe('/api/lists', function(){
     //                 expect(res.body.wishlist).to.be.an('array');
     //                 res.body.wishlist.forEach(wishItem => {
     //                     expect(wishItem).to.be.an('object');
-    //                     expect(wishItem).to.include.keys('id', 'title', 'editing', 'dateCreated', 'user', 'zipcode')
+    //                     expect(wishItem).to.include.keys('id', 'title', 'dateCreated', 'user', 'zipcode')
     //                 });
     //                 resWishItem = res.body.wishlist[0];
     //                 return List.findById(resWishItem.id);
@@ -323,7 +320,6 @@ describe('/api/lists', function(){
     //                 expect(resWishItem.id).to.equal(wishItem.id);
     //                 expect(resWishItem.title).to.equal(wishItem.title);
     //                 expect(resWishItem.user).to.equal(wishItem.user);
-    //                 expect(resWishItem.editing).to.equal(wishItem.editing);
     //             });
     //         });
     //     });
@@ -346,13 +342,12 @@ describe('/api/lists', function(){
                 expect(res).to.have.status(201);
                 expect(res).to.be.json;
                 expect(res.body).to.be.an('object');
-                expect(res.body).to.include.keys('id', 'title', 'description', 'price', 'dateCreated', 'expiresIn', 'editing', 'user', 'zipcode');
+                expect(res.body).to.include.keys('id', 'title', 'description', 'price', 'dateCreated', 'expiresIn', 'user', 'zipcode');
                 expect(res.body.id).to.be.a('string');
                 expect(res.body.title).to.equal(newListing.title);
                 expect(res.body.description).to.equal(newListing.description);
                 expect(res.body.price).to.equal(newListing.price);
                 expect(res.body.expiresIn).to.equal(14);
-                expect(res.body.editing).to.be.false;
                 expect(res.body.zipcode).to.equal(testZip);
                 expect(res.body.user).to.equal(user.id);
             });
@@ -372,10 +367,9 @@ describe('/api/lists', function(){
                 expect(res).to.have.status(201);
                 expect(res).to.be.json;
                 expect(res.body).to.be.an('object');
-                expect(res.body).to.include.keys('id', 'title', 'dateCreated','editing', 'user');
+                expect(res.body).to.include.keys('id', 'title', 'dateCreated', 'user');
                 expect(res.body.id).to.be.a('string');
                 expect(res.body.title).to.equal(newWishItem.title);
-                expect(res.body.editing).to.be.false;
                 expect(res.body.user).to.equal(user.id);
             });
         });
@@ -406,8 +400,6 @@ describe('/api/lists', function(){
                 expect(listing.description).to.equal(updateData.description);
                 expect(listing.price).to.equal(updateData.price);
                 expect(listing.zipcode).to.equal(updateData.zipcode);
-                //editing should be toggled to false when request is submitted.
-                expect(listing.editing).to.be.false;
             });
         });
     });
@@ -431,8 +423,6 @@ describe('/api/lists', function(){
             })
             .then(function(wishItem){
                 expect(wishItem.title).to.equal(updateData.title);
-                //editing should be toggled to false when request is submitted.
-                expect(wishItem.editing).to.be.false;
             });
         });
     });
