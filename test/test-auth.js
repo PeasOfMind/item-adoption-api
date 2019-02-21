@@ -81,7 +81,8 @@ describe('/api/auth', function(){
                 expect(token).to.be.a('string');
                 const payload = jwt.verify(token, JWT_SECRET, {
                 algorithm: ['HS256']});
-                expect(payload.user).to.deep.equal({username});
+                expect(payload.user).to.include.keys('id', 'username');
+                expect(payload.user.username).to.equal(username);
             })
             .catch(err => {
                 throw err;
