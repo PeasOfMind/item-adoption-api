@@ -34,7 +34,7 @@ router.get('/wishlist', (req, res) => {
 router.get('/listings/:zipcode', (req, res) => {
     List.find({isWishlist: false, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(listings => {
-        console.log('the endpoint listings are:', listings);
+        console.log(listings);
         res.json({listings: listings.map(listing => listing.serialize())});
     });
 });
@@ -42,7 +42,6 @@ router.get('/listings/:zipcode', (req, res) => {
 router.get('/wishlist/:zipcode', (req, res) => {
     List.find({isWishlist: true, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(wishlist => {
-        console.log('the endpoint wishlist is:', wishlist);
         res.json({wishlist: wishlist.map(wishItem => wishItem.serialize())});
     });
 })
@@ -106,7 +105,7 @@ router.put('/listings/:id', (req, res) => {
         });
     }
 
-    const updated = {};
+    const updated = {editing: false}
 
     const updatableFields = ['title', 'description', 'price', 'expirationDate', 'zipcode'];
     updatableFields.forEach(field => {
@@ -124,10 +123,10 @@ router.put('/wishlist/:id', (req, res) => {
             error: 'Request path id and request body id must match'
         });
     }
-    if(!req.body.title) res.status(400).json({error: 'wish item title must be provided'});
 
     const updated = {
         title: req.body.title,
+        editing: false
     }
 
     List.findByIdAndUpdate(req.params.id, { $set: updated})
