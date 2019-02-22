@@ -34,18 +34,16 @@ router.get('/wishlist', (req, res) => {
 router.get('/listings/:zipcode', (req, res) => {
     List.find({isWishlist: false, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(listings => {
-        console.log(listings);
+        console.log('the endpoint listings are:', listings);
         res.json({listings: listings.map(listing => listing.serialize())});
     });
 });
 
 router.get('/wishlist/:zipcode', (req, res) => {
-    List.find({isWishlist: true, zipcode: req.params.zipcode})
+    List.find({isWishlist: true, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(wishlist => {
-        return wishlist.filter(wishItem => wishItem.user != req.user.id);
-    })
-    .then(filteredWishlist => {
-        res.json({wishlist: filteredWishlist.map(wishItem => wishItem.serialize())});
+        console.log('the endpoint wishlist is:', wishlist);
+        res.json({wishlist: wishlist.map(wishItem => wishItem.serialize())});
     });
 })
 
