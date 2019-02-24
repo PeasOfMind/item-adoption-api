@@ -40,10 +40,36 @@ router.get('/listings/:zipcode', (req, res) => {
 });
 
 router.get('/wishlist/:zipcode', (req, res) => {
-    List.find({isWishlist: true, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
+    //need to add filtering to arrange wish items to attribute to one user
+    List.find({isWishlist: true, user: {$ne: req.user.id}})
     .then(wishlist => {
-        res.json({wishlist: wishlist.map(wishItem => wishItem.serialize())});
-    });
+        return {wishlist: wishlist.map(wishItem => wishItem.serialize())};
+    })
+    .then(serializedWishlist => {
+        const userWishlists = {};
+        console.log(serializedWishlist);
+        serializedWishlist.wishlist.forEach(wishItem => {
+            const username = wishItem.user.username;
+            if (wishlistItem.user.zipcode !== req.params.zipcode){
+                if (!(username in userWishlists)) {
+                    userWishlists[username] = {
+                        zipcode: wishItem.user.zipcode,
+                        userId: wishItem.user._id,
+                        wishlist: []
+                    }
+                }
+                userWishlists[username].wishlist.push({
+                    id: wishItem.id,
+                    title: wishItem.title
+                });
+            }
+        })
+        res.json(userWishlists);
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Could not retrieve other wishlists'});
+    })
 })
 
 router.post('/listings', (req,res) => {
@@ -57,12 +83,13 @@ router.post('/listings', (req,res) => {
 
     const newListing = {
         user: req.user.id,
-        title: req.body.title,
-        price: req.body.price
+        title: req.body.title
     };
 
     newListing.description = req.body.description || 'No Description Available';
-    //set a zipcode if the user wants it. otherwise it'll default to the zipcode associated with the user
+    //if no price is provided, set to free.
+    newListing.price = req.body.price || 0;
+    //set a zipcode if the user wants to specify it
     if (req.body.zipcode) newListing.zipcode = req.body.zipcode;
     List.createListing(newListing)
     .then(listing => res.status(201).json(listing.serialize()))
@@ -90,8 +117,7 @@ router.post('/wishlist', (req, res) => {
     List.createWishItem(newWishItem)
     .then(wishItem => {
         res.status(201).json(wishItem.serialize())
-    }
-        )
+    })
     .catch(err => {
         console.error(err);
         res.status(500).json({error: 'Wishlist item could not be saved.'});
