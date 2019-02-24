@@ -72,7 +72,7 @@ router.get('/wishlist/search/:zipcode', (req, res) => {
         console.log(serializedWishlist);
         serializedWishlist.wishlist.forEach(wishItem => {
             const username = wishItem.user.username;
-            if (wishlistItem.user.zipcode !== req.params.zipcode){
+            if (wishItem.user.zipcode === req.params.zipcode){
                 if (!(username in userWishlists)) {
                     userWishlists[username] = {
                         zipcode: wishItem.user.zipcode,
