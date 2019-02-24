@@ -31,7 +31,29 @@ router.get('/wishlist', (req, res) => {
     });
 });
 
-router.get('/listings/:zipcode', (req, res) => {
+router.get('/listings/:listingId', (req, res) => {
+    List.findById(req.params.listingId)
+    .then(listing => {
+        res.json(listing.serialize());
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Could not retrieve the listing'})
+    })
+})
+
+router.get('/wishlist/:itemId', (req, res) => {
+    List.findById(req.params.itemId)
+    .then(item => {
+        res.json(item.serialize());
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({error: 'Could not retrieve the wish item'})
+    })
+})
+
+router.get('/listings/search/:zipcode', (req, res) => {
     List.find({isWishlist: false, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(listings => {
         console.log(listings);
@@ -39,7 +61,7 @@ router.get('/listings/:zipcode', (req, res) => {
     });
 });
 
-router.get('/wishlist/:zipcode', (req, res) => {
+router.get('/wishlist/search/:zipcode', (req, res) => {
     //need to add filtering to arrange wish items to attribute to one user
     List.find({isWishlist: true, user: {$ne: req.user.id}})
     .then(wishlist => {
