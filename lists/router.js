@@ -56,7 +56,6 @@ router.get('/wishlist/:itemId', (req, res) => {
 router.get('/listings/search/:zipcode', (req, res) => {
     List.find({isWishlist: false, zipcode: req.params.zipcode, user: {$ne: req.user.id}})
     .then(listings => {
-        console.log(listings);
         res.json({listings: listings.map(listing => listing.serialize())});
     });
 });
@@ -69,7 +68,6 @@ router.get('/wishlist/search/:zipcode', (req, res) => {
     })
     .then(serializedWishlist => {
         const userWishlists = {};
-        console.log(serializedWishlist);
         serializedWishlist.wishlist.forEach(wishItem => {
             const username = wishItem.user.username;
             if (wishItem.user.zipcode === req.params.zipcode){
@@ -153,7 +151,7 @@ router.put('/listings/:id', (req, res) => {
         });
     }
 
-    const updated = {editing: false}
+    const updated = {};
 
     const updatableFields = ['title', 'description', 'price', 'expirationDate', 'zipcode'];
     updatableFields.forEach(field => {
@@ -172,10 +170,7 @@ router.put('/wishlist/:id', (req, res) => {
         });
     }
 
-    const updated = {
-        title: req.body.title,
-        editing: false
-    }
+    const updated = {title: req.body.title}
 
     List.findByIdAndUpdate(req.params.id, { $set: updated})
     .then(() => res.status(204).end())
