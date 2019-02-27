@@ -23,8 +23,10 @@ function seedListDatabase(userId){
     //generate a bunch of listings and wishlists associated with different users
     const num = 2;
     let seedListingData;
+    console.log('now seeding the list database...')
     return generateListingData(num, userId)
     .then(data => {
+        console.log('the listing data has been returned...')
         return seedListingData = data;
     })
     .then(() => {
@@ -35,7 +37,7 @@ function seedListDatabase(userId){
 
 function seedUserDatabase(){
     //generate 2 other users with the same zipcode and 3 other users with random zipcodes
-    const seedData = [...generateOtherUsers(2, testZip), ...generateOtherUsers(3)];
+    const seedData = [...generateOtherUsers(2, testZip), ...generateOtherUsers(1)];
     return User.insertMany(seedData);
 }
 
@@ -56,10 +58,12 @@ function generateOtherUsers(quantity, zipcode){
 
 function generateListingData(quantity, userId){
     const listings = [];
+    console.log('the userId is:', userId);
     //find associated user zipcode to assign to listing
     return User.findById(userId)
-    .then(user => {
-        return user.zipcode;
+    .then(_user => {
+        console.log('the _user is:', _user)
+        return _user.zipcode;
     })
     .then(userZip => {
         for (let i=1; i<=quantity; i++){
@@ -214,79 +218,134 @@ describe('/api/lists', function(){
         });
     });
 
-    describe('Seach by zipcode', function(){
-        const otherUsersIds = [];
-        beforeEach(function(){
-            return seedUserDatabase()
-            .then(() => {
-                //find all other users that are not the current user
-                return User.find({username: {$ne: user.username}});
+    describe('GET listing by id endpoint', function(){
+        it('should retrieve a single listing by id', function(){
+            let targetListing;
+            return List.findOne({isWishlist: false})
+            .then(function(listing){
+                targetListing = listing;
+                return chai.request(app)
+                .get(`/api/lists/listings/${targetListing.id}`)
+                .set('Authorization', `Bearer ${user.authToken}`)
             })
-            .then(users => {
-                //save the user ids to an array;
-                return users.forEach(user => {
-                    otherUsersIds.push(user._id);
-                });
-            })
-            .then(() => {
-                //add listings and wishlists for each of the other users
-                return otherUsersIds.forEach(userId => {
-                    seedListDatabase(userId);
-                });
+            .then(function(res){
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body).to.be.an('object');
+                expect(res.body.id).to.equal(targetListing.id);
+                expect(res.body.title).to.equal(targetListing.title);
+                expect(res.body.description).to.equal(targetListing.description);
+                expect(res.body.user).to.equal(targetListing.user.toString());
             });
+        });
+    });
 
-        })
+    describe('GET wish item by id endpoint', function(){
+        it('should retrieve a single wish item by id', function(){
+            let targetItem;
+            return List.findOne({isWishlist: true})
+            .then(function(item){
+                targetItem = item;
+                return chai.request(app)
+                .get(`/api/lists/wishlist/${targetItem.id}`)
+                .set('Authorization', `Bearer ${user.authToken}`)
+            })
+            .then(function(res){
+                expect(res).to.have.status(200);
+                expect(res).to.be.json;
+                expect(res.body).to.be.an('object');
+                expect(res.body.id).to.equal(targetItem.id);
+                expect(res.body.title).to.equal(targetItem.title);
+                expect(res.body.user).to.equal(targetItem.user.toString());
+            });
+        });
+    });
 
-        describe('GET all listings in area endpoint', function(){
+    // describe.only('Seach by zipcode', function(){
+    //     const otherUsersIds = [];
+    //     beforeEach(function(){
+    //         return seedUserDatabase()
+    //         .then(() => {
+    //             //find all other users that are not the current user
+    //             return User.find();
+    //         })
+    //         .then(users => {
+    //             users = users.filter(_user => {
+    //                 return _user.username !== user.username;
+    //             })
+    //             //save the user ids to an array;
+    //             return users.forEach(user => {
+    //                 otherUsersIds.push(user._id);
+    //             });
+    //         })
+    //         .then(() => {
+    //             //add listings and wishlists for each of the other users
+    //             return otherUsersIds.map(userId => {
+    //                 return seedListDatabase(userId);
+    //             });
+    //         })
+    //         .then(promises => Promise.all(promises))
+    //         .then(resolvedPromises => {console.log(resolvedPromises)})
+
+    //     })
+
+    //     afterEach(function (){
+    //         return tearDownDb();
+    //     })
+
+
+    //     it("soeirjsoer", function(){
+    //         return true;
+    //     })
+
+        // describe('GET all listings in area endpoint', function(){
             // it('should retrieve active item listings in user area not including user entries', function(){
             //     let res;
             //     return chai.request(app)
-            //     .get(`/api/lists/listings/${testZip}`)
+            //     .get(`/api/lists/listings/search/${testZip}`)
             //     .set('Authorization', `Bearer ${user.authToken}`)
             //     .then(function(_res){
             //         res = _res;
             //         expect(res).to.have.status(200);
             //         expect(res.body.listings).to.have.lengthOf.at.least(1);
-            //         console.log('test user:', user.id)
             //         return List.find({isWishlist: false, zipcode: testZip, user: {$ne: user.id}});
             //     })
             //     .then(function(count){
-            //         console.log('test listings:', count);
-            //         expect(res.body.listings).to.have.lengthOf(count.length);
+            //         expect(res.body.listings).to.have.lengthOf(count);
             //     });
             // });
     
-            it('should return active listings in user area with the right fields', function(){
-                let resListing;
-                return chai.request(app)
-                .get(`/api/lists/listings/${testZip}`)
-                .set('Authorization', `Bearer ${user.authToken}`)
-                .then(function(res){
-                    expect(res).to.have.status(200);
-                    expect(res).to.be.json;
-                    expect(res.body.listings).to.be.an('array');
-                    res.body.listings.forEach(listing => {
-                        expect(listing).to.be.an('object');
-                        expect(listing).to.include.keys('id', 'title', 'price','description', 'expiresIn', 'user', 'zipcode');
-                    })
-                    resListing = res.body.listings[0];
-                    return List.findById(resListing.id);
-                })
-                .then(function(listing){
-                    expect(resListing.id).to.equal(listing.id);
-                    expect(resListing.title).to.equal(listing.title);
-                    expect(resListing.price).to.equal(listing.price);
-                    expect(resListing.description).to.equal(listing.description);
-                    expect(resListing.user._id).to.equal(listing.user.toString());
-                });
-            }); 
-        })
+        //     it('should return active listings in user area with the right fields', function(){
+        //         let resListing;
+        //         return chai.request(app)
+        //         .get(`/api/lists/listings/search/${testZip}`)
+        //         .set('Authorization', `Bearer ${user.authToken}`)
+        //         .then(function(res){
+        //             expect(res).to.have.status(200);
+        //             expect(res).to.be.json;
+        //             expect(res.body.listings).to.be.an('array');
+        //             res.body.listings.forEach(listing => {
+        //                 expect(listing).to.be.an('object');
+        //                 expect(listing).to.include.keys('id', 'title', 'price','description', 'expiresIn', 'user', 'zipcode');
+        //             })
+        //             resListing = res.body.listings[0];
+        //             return List.findById(resListing.id);
+        //         })
+        //         .then(function(listing){
+        //             expect(resListing.id).to.equal(listing.id);
+        //             expect(resListing.title).to.equal(listing.title);
+        //             expect(resListing.price).to.equal(listing.price);
+        //             expect(resListing.description).to.equal(listing.description);
+        //             expect(resListing.user._id).to.equal(listing.user.toString());
+        //         });
+        //     }); 
+        // })
     
         // describe('GET all wishlists in area endpoint', function(){
-        //     it.only('should retrieve all wishlists in user area not including user entries', function(){
+        //     it('should retrieve all wishlists in user area not including user entries', function(){
         //         let res;
         //         return chai.request(app)
-        //         .get(`/api/lists/wishlist/${testZip}`)
+        //         .get(`/api/lists/wishlist/search/${testZip}`)
         //         .set('Authorization', `Bearer ${user.authToken}`)
         //         .then(function(_res){
         //             res = _res;
@@ -302,7 +361,7 @@ describe('/api/lists', function(){
         //     it('should return wish items with the right fields', function(){
         //         let resWishItem;
         //         return chai.request(app)
-        //         .get(`/api/lists/wishlist/${testZip}`)
+        //         .get(`/api/lists/wishlist/search/${testZip}`)
         //         .set('Authorization', `Bearer ${user.authToken}`)
         //         .then(function(res){
         //             expect(res).to.have.status(200);
@@ -312,9 +371,7 @@ describe('/api/lists', function(){
         //                 expect(wishItem).to.be.an('object');
         //                 expect(wishItem).to.include.keys('id', 'title', 'dateCreated', 'user', 'zipcode')
         //             });
-        //             console.log('the res.body.wishlist is:', res.body.wishlist)
         //             resWishItem = res.body.wishlist[0];
-        //             console.log('the resWishItem is:', resWishItem);
         //             return List.findById(resWishItem.id);
         //         })
         //         .then(function(wishItem){
@@ -325,7 +382,7 @@ describe('/api/lists', function(){
         //     });
         // });
 
-    });
+    // });
 
     describe('POST listing endpoint', function(){
         it('should add a new item listing', function(){

@@ -74,10 +74,6 @@ router.get('/:id', jwtAuth, (req, res) => {
 
 router.put('/:id', jwtAuth, (req, res) => {
     //This endpoint assigns/updates a zipcode for the user only.
-    console.log('req.params.id exists:', !!req.params.id)
-    console.log('req.body.id exists:', !!req.body.id)
-    console.log('params id equas body id:', req.params.id === req.body.id)
-    console.log('zipcode:', req.body.zipcode)
     if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
         res.status(400).json({
             error: 'Request path id and request body id must match'
