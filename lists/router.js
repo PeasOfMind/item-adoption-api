@@ -5,7 +5,12 @@ const router = express.Router();
 const passport = require('passport');
 
 const {List} = require('./models');
+const {User} = require('../users');
 const jwtAuth = passport.authenticate('jwt', {session: false});
+const {SEND_API_KEY} = require('../config');
+
+const sgMail = require('@sendgrid/mail');
+
 
 router.use(jwtAuth);
 
@@ -64,11 +69,11 @@ router.get('/wishlist/search/:zipcode', (req, res) => {
     //need to add filtering to arrange wish items to attribute to one user
     List.find({isWishlist: true, user: {$ne: req.user.id}})
     .then(wishlist => {
-        return {wishlist: wishlist.map(wishItem => wishItem.serialize())};
+        return wishlist.map(wishItem => wishItem.serialize());
     })
     .then(serializedWishlist => {
         const userWishlists = {};
-        serializedWishlist.wishlist.forEach(wishItem => {
+        serializedWishlist.forEach(wishItem => {
             const username = wishItem.user.username;
             if (wishItem.user.zipcode === req.params.zipcode){
                 if (!(username in userWishlists)) {
@@ -188,5 +193,33 @@ router.delete('/wishlist/:id', (req, res) => {
     .then(() => res.status(204).end())
     .catch(() => res.status(500).json({message: 'Could not delete wishlist'}));
 });
+
+router.post('/listings/contact/:itemId', (req, res) => {
+    const requestingUser = {id: req.user.id};
+    let sellingUser;
+    User.findById(requestingUser.id)
+    .then(user => {
+        requestingUser.email = user.email;
+        requestingUser.username = user.username;
+    })
+    .then(() => {
+        List.find({_id: req.params.itemId})
+        // .then(listing => listing.serialize())
+        .then(serializedListing => {
+            sellingUser = serializedListing[0].user;
+            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+            const msg = {
+                to: sellingUser.email,
+                from: requestingUser.email,
+                subject: `Item Adoption: ${requestingUser.username} interest in ${serializedListing[0].title}`,
+                text: 'Reply to this email to start a transaction.',
+                html: 'Reply to this email to start a transaction.',
+            };
+            sgMail.send(msg);
+        })
+        .then(() => res.status(204).end())
+    })
+
+})
 
 module.exports = {router};

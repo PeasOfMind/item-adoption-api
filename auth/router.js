@@ -26,7 +26,7 @@ const jwtAuth = passport.authenticate('jwt', {session: false});
 
 router.post('/refresh', jwtAuth, (req, res) => {
     const authToken = createAuthToken(req.user);
-    res.json({authToken, username: req.user.username});
+    res.json({authToken, username: req.user.username, id: req.user.id});
 });
 
 module.exports = {router, createAuthToken};

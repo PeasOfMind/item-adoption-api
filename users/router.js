@@ -80,11 +80,13 @@ router.put('/:id', jwtAuth, (req, res) => {
         });
     }
 
-    const updated = {zipcode: req.body.zipcode}
+    const updated = {}
+    if (req.body.zipcode) updated.zipcode = req.body.zipcode;
+    if (req.body.email) updated.email = req.body.email;
 
     User.findByIdAndUpdate(req.params.id, {$set: updated})
     .then(() => res.status(204).end())
-    .catch(() => res.status(500).json({message: 'Zipcode data could not be saved to user'}))
+    .catch(() => res.status(500).json({message: 'User data could not be saved to user'}))
 });
 
 module.exports = {router};
