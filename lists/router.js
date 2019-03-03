@@ -163,7 +163,7 @@ router.put('/listings/:id', (req, res) => {
         if(req.body[field]) updated[field] = req.body[field];
     })
 
-    List.findByIdAndUpdate(req.params.id, { $set: updated})
+    List.findOneAndUpdate({_id: req.params.id, user: req.user.id}, {$set: updated})
     .then(() => res.status(204).end())
     .catch(() => res.status(500).json({message: 'Listing details could not be updated'}));
 });
@@ -177,7 +177,7 @@ router.put('/wishlist/:id', (req, res) => {
 
     const updated = {title: req.body.title}
 
-    List.findByIdAndUpdate(req.params.id, { $set: updated})
+    List.findOneAndUpdate({_id: req.params.id, user: req.user.id}, { $set: updated})
     .then(() => res.status(204).end())
     .catch(() => res.status(500).json({message: 'Wishlist details could not be updated'}));
 });
@@ -196,7 +196,6 @@ router.delete('/wishlist/:id', (req, res) => {
 
 router.post('/listings/contact/:itemId', (req, res) => {
     const requestingUser = {id: req.user.id};
-    let sellingUser;
     User.findById(requestingUser.id)
     .then(user => {
         requestingUser.email = user.email;
@@ -204,22 +203,60 @@ router.post('/listings/contact/:itemId', (req, res) => {
     })
     .then(() => {
         List.find({_id: req.params.itemId})
-        // .then(listing => listing.serialize())
-        .then(serializedListing => {
-            sellingUser = serializedListing[0].user;
+        .then(foundListing => {
+            const listing = foundListing[0];
+            const sellingUser = listing.user;
+            const buyingWord = listing.price ? ' buying' : '';
+            const priceWord = listing.price ? `at $${listing.price}` : 'for free';
             sgMail.setApiKey(process.env.SENDGRID_API_KEY);
             const msg = {
                 to: sellingUser.email,
                 from: requestingUser.email,
-                subject: `Item Adoption: ${requestingUser.username} interest in ${serializedListing[0].title}`,
-                text: 'Reply to this email to start a transaction.',
-                html: 'Reply to this email to start a transaction.',
+                subject: `Item Adoption: ${requestingUser.username} interest in ${listing.title}`,
+                text: `Thanks for listing your item on Item Adoption! ${requestingUser.username} is interested in${buyingWord}: ${listing.title}.
+                You listed this item ${priceWord} with the description "${listing.description}" at location zipcode: ${listing.zipcode}.
+                Reply to this email to start a transaction with ${requestingUser.username}.`,
+                html: `<p>Thanks for listing your item on Item Adoption! ${requestingUser.username} is interested in${buyingWord}: ${listing.title}.</p>
+                <p>You listed this item ${priceWord} with the description "${listing.description}" at location zipcode: ${listing.zipcode}.
+                Reply to this email to start a transaction with ${requestingUser.username}.</p>`,
             };
             sgMail.send(msg);
         })
         .then(() => res.status(204).end())
-    })
+    });
 
-})
+});
+
+router.post('/wishlist/contact/:itemId', (req, res) => {
+    console.log('contacting...')
+    const requestingUser = {id: req.user.id};
+    console.log('the requesting user with just the id is:', requestingUser);
+    User.findById(requestingUser.id)
+    .then(user => {
+        requestingUser.email = user.email;
+        requestingUser.username = user.username;
+        console.log('requesting user is:', requestingUser);
+    })
+    .then(() => {
+        List.find({_id: req.params.itemId})
+        .then(foundWishItem => {
+            const wishItem = foundWishItem[0];
+            const itemUser = wishItem.user;
+            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+            const msg = {
+                to: itemUser.email,
+                from: requestingUser.email,
+                subject: `Item Adoption: ${requestingUser.username} wants to offer you ${wishItem.title}`,
+                text: `Thanks for listing your wishlist on Item Adoption! ${requestingUser.username} is interested in offering you: ${wishItem.title}.
+                Reply to this email to start a transaction with ${requestingUser.username}.`,
+                html: `<p>Thanks for listing your wishlist on Item Adoption! ${requestingUser.username} is interested in offering you: ${wishItem.title}.</p>
+                Reply to this email to start a transaction with ${requestingUser.username}.</p>`,
+            };
+            sgMail.send(msg);
+        })
+        .then(() => res.status(204).end())
+    });
+
+});
 
 module.exports = {router};

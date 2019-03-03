@@ -64,16 +64,19 @@ router.post('/', (req, res) => {
 });
 
 router.get('/:id', jwtAuth, (req, res) => {
-    //This endpoint gets the zipcode for the user only.
+    //This endpoint gets the zipcode and email
     User.findById(req.params.id)
     .then(user => {
-        return res.json({zipcode: user.zipcode});
+        return res.json({
+            zipcode: user.zipcode,
+            email: user.email
+        });
     });
 
 });
 
 router.put('/:id', jwtAuth, (req, res) => {
-    //This endpoint assigns/updates a zipcode for the user only.
+    //This endpoint assigns/updates a zipcode and/or email for the user only.
     if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
         res.status(400).json({
             error: 'Request path id and request body id must match'
