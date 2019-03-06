@@ -47,6 +47,7 @@ function generateOtherUsers(quantity, zipcode){
         otherUsers.push({
             username: faker.internet.userName(),
             password: faker.internet.password(8),
+            email: faker.internet.email(),
             zipcode
         });
     }
@@ -111,7 +112,7 @@ describe('Seach by zipcode', function(){
             user.authToken = response.body.authToken;
             user.id = response.body.id;
             //add an associated zipcode to user document
-            return User.findByIdAndUpdate(user.id, {$set: {zipcode: testZip} })
+            return User.findByIdAndUpdate(user.id, {$set: {zipcode: testZip, email: faker.internet.email()} })
         })
         .then(() => {
             return seedUserDatabase();
@@ -211,6 +212,45 @@ describe('Seach by zipcode', function(){
                         expect(wishItem).to.include.keys('id', 'title');
                     });
                 });
+            });
+        });
+    });
+
+
+    describe('POST listing contact email endpoint', function(){
+        it('should send email to listing owner successfully', function(){
+            List.find({isWishlist: false, zipcode: testZip, user: {$ne: user.id}})
+            .then(listings => {
+                //retrieve listing id of first result
+                return listings[0]._id;
+            })
+            .then(listingId => {
+                console.log('the listing id is',listingId);
+                return chai.request(app)
+                .post(`/api/lists/listings/contact/${listingId}`)
+                .set('Authorization', `Bearer ${user.authToken}`)
+            })
+            .then(function(res){
+                expect(res).to.have.status(204);
+            });
+        });
+    });
+
+    describe('POST wishlist contact email endpoint', function(){
+        it.only('should send email to wishlist owner successfully', function(){
+            List.find({isWishlist: true, user: {$ne: user.id}})
+            .then(wishlist => {
+                //retrieve wishlist id of first result
+                return wishlist[0]._id;
+            })
+            .then(itemId => {
+                console.log('the wishlist id is',itemId);
+                return chai.request(app)
+                .post(`/api/lists/wishlist/contact/${itemId}`)
+                .set('Authorization', `Bearer ${user.authToken}`)
+            })
+            .then(function(res){
+                expect(res).to.have.status(204);
             });
         });
     });
