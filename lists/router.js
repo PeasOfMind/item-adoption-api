@@ -5,7 +5,12 @@ const router = express.Router();
 const passport = require('passport');
 
 const {List} = require('./models');
+const {User} = require('../users');
 const jwtAuth = passport.authenticate('jwt', {session: false});
+const {SEND_API_KEY} = require('../config');
+
+const sgMail = require('@sendgrid/mail');
+
 
 router.use(jwtAuth);
 
@@ -64,11 +69,11 @@ router.get('/wishlist/search/:zipcode', (req, res) => {
     //need to add filtering to arrange wish items to attribute to one user
     List.find({isWishlist: true, user: {$ne: req.user.id}})
     .then(wishlist => {
-        return {wishlist: wishlist.map(wishItem => wishItem.serialize())};
+        return wishlist.map(wishItem => wishItem.serialize());
     })
     .then(serializedWishlist => {
         const userWishlists = {};
-        serializedWishlist.wishlist.forEach(wishItem => {
+        serializedWishlist.forEach(wishItem => {
             const username = wishItem.user.username;
             if (wishItem.user.zipcode === req.params.zipcode){
                 if (!(username in userWishlists)) {
@@ -158,7 +163,7 @@ router.put('/listings/:id', (req, res) => {
         if(req.body[field]) updated[field] = req.body[field];
     })
 
-    List.findByIdAndUpdate(req.params.id, { $set: updated})
+    List.findOneAndUpdate({_id: req.params.id, user: req.user.id}, {$set: updated})
     .then(() => res.status(204).end())
     .catch(() => res.status(500).json({message: 'Listing details could not be updated'}));
 });
@@ -172,7 +177,7 @@ router.put('/wishlist/:id', (req, res) => {
 
     const updated = {title: req.body.title}
 
-    List.findByIdAndUpdate(req.params.id, { $set: updated})
+    List.findOneAndUpdate({_id: req.params.id, user: req.user.id}, { $set: updated})
     .then(() => res.status(204).end())
     .catch(() => res.status(500).json({message: 'Wishlist details could not be updated'}));
 });
@@ -187,6 +192,71 @@ router.delete('/wishlist/:id', (req, res) => {
     List.findByIdAndRemove(req.params.id)
     .then(() => res.status(204).end())
     .catch(() => res.status(500).json({message: 'Could not delete wishlist'}));
+});
+
+router.post('/listings/contact/:itemId', (req, res) => {
+    const requestingUser = {id: req.user.id};
+    User.findById(requestingUser.id)
+    .then(user => {
+        requestingUser.email = user.email;
+        requestingUser.username = user.username;
+    })
+    .then(() => {
+        List.find({_id: req.params.itemId})
+        .then(foundListing => {
+            const listing = foundListing[0];
+            const sellingUser = listing.user;
+            const buyingWord = listing.price ? ' buying' : '';
+            const priceWord = listing.price ? `at $${listing.price}` : 'for free';
+            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+            const msg = {
+                to: sellingUser.email,
+                from: requestingUser.email,
+                subject: `Item Adoption: ${requestingUser.username} interest in ${listing.title}`,
+                text: `Thanks for listing your item on Item Adoption! ${requestingUser.username} is interested in${buyingWord}: ${listing.title}.
+                You listed this item ${priceWord} with the description "${listing.description}" at location zipcode: ${listing.zipcode}.
+                Reply to this email to start a transaction with ${requestingUser.username}.`,
+                html: `<p>Thanks for listing your item on Item Adoption! ${requestingUser.username} is interested in${buyingWord}: ${listing.title}.</p>
+                <p>You listed this item ${priceWord} with the description "${listing.description}" at location zipcode: ${listing.zipcode}.
+                Reply to this email to start a transaction with ${requestingUser.username}.</p>`,
+            };
+            sgMail.send(msg);
+        })
+        .then(() => res.status(204).end())
+    });
+
+});
+
+router.post('/wishlist/contact/:itemId', (req, res) => {
+    console.log('contacting...')
+    const requestingUser = {id: req.user.id};
+    console.log('the requesting user with just the id is:', requestingUser);
+    User.findById(requestingUser.id)
+    .then(user => {
+        requestingUser.email = user.email;
+        requestingUser.username = user.username;
+        console.log('requesting user is:', requestingUser);
+    })
+    .then(() => {
+        List.find({_id: req.params.itemId})
+        .then(foundWishItem => {
+            const wishItem = foundWishItem[0];
+            const itemUser = wishItem.user;
+            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+            const msg = {
+                to: itemUser.email,
+                from: requestingUser.email,
+                subject: `Item Adoption: ${requestingUser.username} wants to offer you ${wishItem.title}`,
+                text: `Thanks for listing your wishlist on Item Adoption! ${requestingUser.username} is interested in offering you: ${wishItem.title}.
+                Reply to this email to start a transaction with ${requestingUser.username}.`,
+                html: `<p>Thanks for listing your wishlist on Item Adoption! ${requestingUser.username} is interested in offering you: ${wishItem.title}.</p>
+                Reply to this email to start a transaction with ${requestingUser.username}.</p>`,
+            };
+            sgMail.send(msg);
+        })
+        .then(() => res.status(204).end())
+    });
+
 });
 
 module.exports = {router};

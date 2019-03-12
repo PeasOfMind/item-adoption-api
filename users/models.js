@@ -12,7 +12,8 @@ const userSchema = mongoose.Schema({
         unique: true
     },
     password: {type: String, require: true},
-    zipcode: {type: String}
+    zipcode: {type: String},
+    email: {type: String}
 });
 
 userSchema.methods.serialize = function(){

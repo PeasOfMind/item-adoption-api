@@ -59,7 +59,7 @@ listSchema.statics.createWishItem = function(wishItem){
 }
 
 listSchema.pre('find', function(next){
-    this.populate('user', ['id', 'username', 'zipcode']);
+    this.populate('user', ['id', 'username', 'zipcode', 'email']);
     next();
 });
 
