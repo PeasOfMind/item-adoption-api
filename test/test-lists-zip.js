@@ -237,14 +237,13 @@ describe('Seach by zipcode', function(){
     });
 
     describe('POST wishlist contact email endpoint', function(){
-        it.only('should send email to wishlist owner successfully', function(){
+        it('should send email to wishlist owner successfully', function(){
             List.find({isWishlist: true, user: {$ne: user.id}})
             .then(wishlist => {
                 //retrieve wishlist id of first result
                 return wishlist[0]._id;
             })
             .then(itemId => {
-                console.log('the wishlist id is',itemId);
                 return chai.request(app)
                 .post(`/api/lists/wishlist/contact/${itemId}`)
                 .set('Authorization', `Bearer ${user.authToken}`)
