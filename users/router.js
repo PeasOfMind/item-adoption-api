@@ -31,8 +31,6 @@ router.post('/', (req, res) => {
             location: nonStringField
         });
     }
-    
-    //TODO: add nonTrimmedField and sizedFields validation
 
     let {username, password} = req.body;
 
