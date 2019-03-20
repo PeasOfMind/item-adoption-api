@@ -11,7 +11,6 @@ const {SEND_API_KEY} = require('../config');
 
 const sgMail = require('@sendgrid/mail');
 
-
 router.use(jwtAuth);
 
 router.get('/listings', (req, res) => {
@@ -208,7 +207,7 @@ router.post('/listings/contact/:itemId', (req, res) => {
             const sellingUser = listing.user;
             const buyingWord = listing.price ? ' buying' : '';
             const priceWord = listing.price ? `at $${listing.price}` : 'for free';
-            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+            sgMail.setApiKey(SEND_API_KEY);
             const msg = {
                 to: sellingUser.email,
                 from: requestingUser.email,
@@ -242,7 +241,7 @@ router.post('/wishlist/contact/:itemId', (req, res) => {
         .then(foundWishItem => {
             const wishItem = foundWishItem[0];
             const itemUser = wishItem.user;
-            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+            sgMail.setApiKey(SEND_API_KEY);
             const msg = {
                 to: itemUser.email,
                 from: requestingUser.email,
