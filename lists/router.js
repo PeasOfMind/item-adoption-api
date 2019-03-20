@@ -227,14 +227,11 @@ router.post('/listings/contact/:itemId', (req, res) => {
 });
 
 router.post('/wishlist/contact/:itemId', (req, res) => {
-    console.log('contacting...')
     const requestingUser = {id: req.user.id};
-    console.log('the requesting user with just the id is:', requestingUser);
     User.findById(requestingUser.id)
     .then(user => {
         requestingUser.email = user.email;
         requestingUser.username = user.username;
-        console.log('requesting user is:', requestingUser);
     })
     .then(() => {
         List.find({_id: req.params.itemId})

@@ -225,7 +225,6 @@ describe('Seach by zipcode', function(){
                 return listings[0]._id;
             })
             .then(listingId => {
-                console.log('the listing id is',listingId);
                 return chai.request(app)
                 .post(`/api/lists/listings/contact/${listingId}`)
                 .set('Authorization', `Bearer ${user.authToken}`)
